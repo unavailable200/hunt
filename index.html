@@ -1,0 +1,2377 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>HOTEL HUNTER</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+html,body,#game{
+width:100%;
+height:100%;
+overflow:hidden;
+background:#071326;
+color:white;
+font-family:Arial,sans-serif;
+touch-action:none
+}
+
+#game{position:fixed;inset:0}
+canvas{width:100%;height:100%;display:block}
+
+#logo{
+position:absolute;
+top:12px;
+left:15px;
+z-index:3
+}
+
+#logo small{
+color:#ff7484;
+font-size:10px;
+letter-spacing:2px
+}
+
+#logo h1{font-size:25px}
+#logo span{color:#ff5266}
+
+#hud{
+position:absolute;
+right:10px;
+top:12px;
+display:flex;
+gap:5px;
+z-index:3;
+flex-wrap:wrap
+}
+
+.stat{
+background:#0b192d;
+border:1px solid #52647d;
+border-radius:8px;
+padding:7px
+}
+
+.stat label{
+display:block;
+color:#ff7583;
+font-size:9px
+}
+
+.stat b{font-size:14px}
+
+#progress{
+position:absolute;
+top:85px;
+left:50%;
+transform:translateX(-50%);
+width:210px;
+text-align:center;
+font-size:11px;
+z-index:3
+}
+
+#progressBar{
+height:7px;
+background:#18283e;
+margin-top:4px
+}
+
+#progressFill{
+height:100%;
+background:#ff5266;
+width:0
+}
+
+#exit{
+position:absolute;
+top:12px;
+left:50%;
+transform:translateX(-50%);
+z-index:4;
+padding:8px;
+background:#172c46;
+color:white;
+border:1px solid #60758e;
+border-radius:8px
+}
+
+#help{
+position:absolute;
+bottom:10px;
+left:50%;
+transform:translateX(-50%);
+background:#071426dd;
+padding:8px;
+border-radius:8px;
+font-size:11px;
+z-index:3;
+text-align:center
+}
+
+#screen{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#061020d9;
+z-index:5
+}
+
+#box{
+width:90%;
+max-width:500px;
+padding:28px 22px;
+text-align:center;
+background:linear-gradient(145deg,#142944,#081426);
+border:1px solid #70849d;
+border-radius:16px
+}
+
+#box h2{
+font-size:40px;
+margin-bottom:12px
+}
+
+#box h2 span{color:#ff566c}
+
+#box p{
+color:#c6d8e9;
+line-height:1.6;
+margin-bottom:18px
+}
+
+button{cursor:pointer}
+
+#box button{
+background:#b82d49;
+color:white;
+border:1px solid #ff8490;
+border-radius:9px;
+padding:13px 24px;
+font-weight:bold
+}
+
+#mobileShoot{
+display:none;
+position:absolute;
+right:18px;
+bottom:55px;
+width:62px;
+height:62px;
+border-radius:50%;
+background:#ad2945;
+color:white;
+border:2px solid #ff929c;
+z-index:4
+}
+
+#toast{
+position:absolute;
+top:130px;
+left:50%;
+transform:translateX(-50%);
+background:#401c2b;
+padding:10px;
+border-radius:8px;
+z-index:4;
+opacity:0;
+text-align:center;
+max-width:90%;
+font-size:12px
+}
+
+@media(max-width:700px){
+#logo{top:6px;left:8px}
+#logo h1{font-size:18px}
+#hud{
+top:48px;
+left:5px;
+right:5px;
+justify-content:center
+}
+.stat{padding:5px}
+#progress{top:105px}
+#exit{
+left:auto;
+right:8px;
+transform:none
+}
+#help{
+font-size:9px;
+max-width:95%
+}
+#mobileShoot{display:block}
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<canvas id="canvas"></canvas>
+
+<div id="logo">
+<small>O HOTEL ESTÁ EM PERIGO</small>
+<h1>HOTEL <span>HUNTER</span></h1>
+</div>
+
+<div id="hud"></div>
+
+<div id="progress">
+<label id="phaseLabel">FASE 1</label>
+<div id="progressBar">
+<div id="progressFill"></div>
+</div>
+</div>
+
+<button id="exit">✕ SAIR</button>
+<div id="toast"></div>
+<button id="mobileShoot">➤</button>
+
+<div id="help">
+MOUSE PARA MIRAR · CLIQUE PARA DISPARAR · ESPAÇO PARA ATIRAR · ESC PARA PAUSAR
+</div>
+
+<div id="screen">
+<div id="box">
+<h2>HOTEL <span>HUNTER</span></h2>
+<p>
+Os hóspedes estão furiosos!<br>
+A receção está em perigo!<br>
+O bagageiro precisa da chave para fazer um transfer!<br>
+Cuidado com o ladrão dos 50 euros!
+</p>
+<button id="start">COMEÇAR JOGO</button>
+</div>
+</div>
+
+</div>
+
+<script>
+(()=>{
+"use strict";
+
+// ================================================
+// ELEMENTOS E VARIÁVEIS
+// ================================================
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+const $=id=>document.getElementById(id);
+
+let W,H,D,frame=0,last=0;
+
+let active=false;
+let phase=1;
+let score=0;
+let lives=5;
+let ammo=65;
+
+let combo=0;
+let kills=0;
+let needed=7;
+
+let spawnTimer=0;
+let groupTimer=0;
+
+let thiefTimer=0;
+let blondeTimer=0;
+let bellhopTimer=0;
+let complaintTimer=0;
+let receptionistTimer=0;
+
+let receptionistVisible=false;
+let receptionistDuration=0;
+
+let guests=[];
+let arrows=[];
+let particles=[];
+
+let best=0;
+let shake=0;
+
+let toastTimer;
+
+const mouse={
+x:innerWidth*.6,
+y:innerHeight*.4
+};
+
+const bow={x:100,y:0};
+
+const rand=(a,b)=>a+Math.random()*(b-a);
+
+const skins=[
+["#e9b58c","#28202b","#244e78","#e64e57"],
+["#bd805e","#171a23","#424b5c","#e8bd46"],
+["#f2c99d","#b8a078","#3d6b57","#56b6d5"],
+["#d99c79","#33251e","#61416c","#d75e63"]
+];
+
+const complaints=[
+"TEM UM CHEIRO DE BOSTA NO LOBBY!",
+"A MÁQUINA DE CAFÉ NÃO FUNCIONA!",
+"QUERO UM QUARTO NUM ANDAR ALTO!",
+"O AC NÃO FUNCIONA!",
+"QUERO FALAR COM O GERENTE!",
+"ESTÁ A CHEIRAR A ESGOTO!"
+];
+
+try{
+best=Number(localStorage.getItem("hotelBossRecord")||0);
+}catch(e){}
+
+
+// ================================================
+// REDIMENSIONAMENTO
+// ================================================
+
+function resize(){
+
+W=innerWidth;
+H=innerHeight;
+
+D=Math.min(devicePixelRatio||1,2);
+
+canvas.width=W*D;
+canvas.height=H*D;
+
+ctx.setTransform(D,0,0,D,0,0);
+
+bow.x=Math.max(65,W*.12);
+bow.y=H*.73;
+
+}
+
+addEventListener("resize",resize);
+resize();
+
+
+// ================================================
+// DESENHO DA RECEÇÃO
+// ================================================
+
+function background(){
+
+// Parede
+
+let wall=ctx.createLinearGradient(0,0,0,H*.68);
+
+wall.addColorStop(0,"#38271f");
+wall.addColorStop(.6,"#694a35");
+wall.addColorStop(1,"#39271f");
+
+ctx.fillStyle=wall;
+ctx.fillRect(0,0,W,H*.70);
+
+
+// Teto
+
+ctx.fillStyle="#d8cabb";
+ctx.fillRect(0,0,W,H*.075);
+
+ctx.fillStyle="#fff1d6";
+ctx.fillRect(W*.27,H*.035,W*.46,5);
+
+ctx.shadowColor="#fff0bf";
+ctx.shadowBlur=18;
+ctx.fillRect(W*.30,H*.055,W*.40,4);
+ctx.shadowBlur=0;
+
+
+// Painéis de madeira
+
+for(let i=0;i<12;i++){
+
+let x=i*W/12;
+
+ctx.fillStyle=i%2===0?"#62412e":"#513526";
+ctx.fillRect(x,H*.075,W/12-2,H*.58);
+
+ctx.strokeStyle="#291b15";
+ctx.lineWidth=2;
+
+ctx.strokeRect(x,H*.075,W/12-2,H*.58);
+
+}
+
+
+// Mármore à esquerda
+
+let marble=ctx.createLinearGradient(0,0,W*.32,H*.55);
+
+marble.addColorStop(0,"#78665b");
+marble.addColorStop(.35,"#b19a88");
+marble.addColorStop(.65,"#50453e");
+marble.addColorStop(1,"#9b8170");
+
+ctx.fillStyle=marble;
+
+ctx.beginPath();
+ctx.moveTo(0,H*.075);
+ctx.lineTo(W*.25,H*.075);
+ctx.lineTo(W*.32,H*.65);
+ctx.lineTo(0,H*.65);
+ctx.closePath();
+ctx.fill();
+
+
+// Veios do mármore
+
+ctx.strokeStyle="#c6ad96";
+ctx.lineWidth=2;
+
+for(let i=0;i<9;i++){
+
+ctx.beginPath();
+
+ctx.moveTo(W*(.02+i*.025),H*.08);
+
+ctx.bezierCurveTo(
+W*(.08+i*.02),H*.22,
+W*(.02+i*.035),H*.43,
+W*(.08+i*.025),H*.64
+);
+
+ctx.stroke();
+
+}
+
+
+// Armários à esquerda
+
+ctx.fillStyle="#a17b4e";
+ctx.fillRect(W*.075,H*.29,W*.14,H*.32);
+
+ctx.strokeStyle="#302119";
+ctx.lineWidth=3;
+ctx.strokeRect(W*.075,H*.29,W*.14,H*.32);
+
+for(let i=0;i<4;i++){
+
+let y=H*.30+i*H*.075;
+
+ctx.fillStyle=i%2===0?"#c49a65":"#977044";
+ctx.fillRect(W*.085,y,W*.12,H*.068);
+
+ctx.strokeStyle="#48301f";
+ctx.strokeRect(W*.085,y,W*.12,H*.068);
+
+ctx.fillStyle="#382719";
+ctx.fillRect(W*.145,y+H*.026,5,5);
+
+}
+
+
+// Prateleiras e caixas
+
+ctx.fillStyle="#98704b";
+ctx.fillRect(W*.23,H*.30,W*.12,5);
+
+for(let i=0;i<4;i++){
+
+ctx.fillStyle="#c5a06d";
+ctx.fillRect(W*(.235+i*.027),H*.22,15,H*.065);
+
+ctx.strokeStyle="#48301f";
+ctx.strokeRect(W*(.235+i*.027),H*.22,15,H*.065);
+
+}
+
+
+// Quadro atrás do rececionista
+
+ctx.fillStyle="#101f34";
+ctx.fillRect(W*.60,H*.19,W*.20,H*.14);
+
+ctx.strokeStyle="#b89a69";
+ctx.lineWidth=3;
+ctx.strokeRect(W*.60,H*.19,W*.20,H*.14);
+
+ctx.fillStyle="#f3dba1";
+ctx.textAlign="center";
+ctx.font="bold 13px Arial";
+ctx.fillText("HOTEL",W*.70,H*.235);
+
+ctx.font="10px Arial";
+ctx.fillText("RECEPTION",W*.70,H*.285);
+
+
+// Relógio
+
+ctx.fillStyle="#dfc49b";
+ctx.beginPath();
+ctx.arc(W*.48,H*.24,15,0,Math.PI*2);
+ctx.fill();
+
+ctx.strokeStyle="#4b3525";
+ctx.lineWidth=2;
+ctx.stroke();
+
+ctx.beginPath();
+ctx.moveTo(W*.48,H*.24);
+ctx.lineTo(W*.48,H*.15);
+ctx.moveTo(W*.48,H*.24);
+ctx.lineTo(W*.54,H*.24);
+ctx.stroke();
+
+
+// Planta
+
+drawPlant(W*.88,H*.46);
+
+
+// Chão
+
+let floor=ctx.createLinearGradient(0,H*.66,0,H);
+
+floor.addColorStop(0,"#c6b49c");
+floor.addColorStop(1,"#e5d8c4");
+
+ctx.fillStyle=floor;
+ctx.fillRect(0,H*.65,W,H*.35);
+
+
+// Linhas do chão
+
+ctx.strokeStyle="#a9957d";
+ctx.lineWidth=1;
+
+for(let i=0;i<8;i++){
+
+ctx.beginPath();
+ctx.moveTo(i*W/7,H*.65);
+ctx.lineTo(i*W/7,H);
+ctx.stroke();
+
+}
+
+ctx.beginPath();
+ctx.moveTo(0,H*.85);
+ctx.lineTo(W,H*.85);
+ctx.stroke();
+
+
+// Balcão da receção
+
+drawReceptionDesk();
+
+
+// Computador
+
+ctx.fillStyle="#101b27";
+ctx.fillRect(W*.79,H*.56,W*.065,H*.065);
+
+ctx.fillStyle="#65798a";
+ctx.fillRect(W*.795,H*.565,W*.055,H*.048);
+
+ctx.fillStyle="#292e33";
+ctx.fillRect(W*.81,H*.625,12,7);
+
+
+// Decoração no balcão
+
+ctx.fillStyle="#d8c39d";
+ctx.fillRect(W*.91,H*.58,W*.035,H*.045);
+
+ctx.fillStyle="#bd9b68";
+ctx.fillRect(W*.905,H*.625,W*.045,5);
+
+
+// Letras do balcão
+
+ctx.fillStyle="#f6dfb2";
+ctx.font="bold 17px Arial";
+ctx.textAlign="center";
+
+ctx.fillText("RECEÇÃO",W*.67,H*.73);
+
+}
+
+
+// ================================================
+// PLANTA
+// ================================================
+
+function drawPlant(x,y){
+
+ctx.fillStyle="#80563b";
+ctx.fillRect(x-17,y,34,35);
+
+ctx.fillStyle="#ad8058";
+ctx.fillRect(x-21,y,42,7);
+
+ctx.strokeStyle="#315b36";
+ctx.lineWidth=5;
+
+for(let i=0;i<8;i++){
+
+ctx.beginPath();
+ctx.moveTo(x,y);
+
+ctx.quadraticCurveTo(
+x+rand(-25,25),
+y-35,
+x+rand(-45,45),
+y-75
+);
+
+ctx.stroke();
+
+}
+
+ctx.fillStyle="#477d43";
+
+for(let i=0;i<10;i++){
+
+ctx.beginPath();
+ctx.ellipse(
+x+rand(-30,30),
+y-rand(25,70),
+8,14,rand(-1,1),0,Math.PI*2
+);
+ctx.fill();
+
+}
+
+}
+
+
+// ================================================
+// BALCÃO DE MÁRMORE
+// ================================================
+
+function drawReceptionDesk(){
+
+let x=W*.43;
+let y=H*.65;
+let width=W*.55;
+let height=H*.19;
+
+
+// Frente do balcão
+
+let desk=ctx.createLinearGradient(x,y,x,y+height);
+
+desk.addColorStop(0,"#80634d");
+desk.addColorStop(.25,"#c0a48a");
+desk.addColorStop(.55,"#8d7058");
+desk.addColorStop(1,"#49382d");
+
+ctx.fillStyle=desk;
+ctx.fillRect(x,y,width,height);
+
+
+// Veios do mármore
+
+ctx.strokeStyle="#d5bca1";
+ctx.lineWidth=2;
+
+for(let i=0;i<7;i++){
+
+ctx.beginPath();
+
+ctx.moveTo(x+rand(0,width),y+10+i*15);
+
+ctx.bezierCurveTo(
+x+rand(0,width),y+25,
+x+rand(0,width),y+50,
+x+rand(0,width),y+height-5
+);
+
+ctx.stroke();
+
+}
+
+
+// Parte superior do balcão
+
+let top=ctx.createLinearGradient(0,y-12,0,y+10);
+
+top.addColorStop(0,"#e3d0b7");
+top.addColorStop(.5,"#aa9077");
+top.addColorStop(1,"#6b5241");
+
+ctx.fillStyle=top;
+ctx.fillRect(x-8,y-12,width+16,16);
+
+ctx.strokeStyle="#e4c9a5";
+ctx.lineWidth=2;
+ctx.strokeRect(x-8,y-12,width+16,16);
+
+
+// Painéis da frente
+
+ctx.strokeStyle="#493629";
+ctx.lineWidth=3;
+
+for(let i=0;i<4;i++){
+
+let px=x+i*width/4;
+
+ctx.strokeRect(px+8,y+18,width/4-16,height-28);
+
+}
+
+
+// Letreiro
+
+ctx.fillStyle="#f1d8ac";
+ctx.font="bold 18px Arial";
+ctx.textAlign="center";
+ctx.fillText("RECEÇÃO",x+width*.45,y+height*.55);
+
+}
+
+
+// ================================================
+// RECECIONISTA
+// ================================================
+
+function drawReceptionist(){
+
+if(!receptionistVisible)return;
+
+let x=W*.65;
+let y=H*.64;
+let r=Math.min(23,W*.035);
+
+// Corpo
+
+ctx.fillStyle="#777f88";
+ctx.fillRect(x-r,y-r*.1,r*2,r*1.1);
+
+// Camisa
+
+ctx.fillStyle="#f0e9dc";
+ctx.beginPath();
+ctx.moveTo(x-r*.35,y-r*.1);
+ctx.lineTo(x,y+r*.45);
+ctx.lineTo(x+r*.35,y-r*.1);
+ctx.fill();
+
+// Gravata
+
+ctx.fillStyle="#9e3440";
+ctx.beginPath();
+ctx.moveTo(x,y);
+ctx.lineTo(x-4,y+17);
+ctx.lineTo(x,y+22);
+ctx.lineTo(x+4,y+17);
+ctx.fill();
+
+// Cabeça
+
+ctx.fillStyle="#d8a17e";
+ctx.beginPath();
+ctx.arc(x,y-r*.65,r*.65,0,Math.PI*2);
+ctx.fill();
+
+// Cabelo
+
+ctx.fillStyle="#b9b6ae";
+ctx.beginPath();
+ctx.arc(x,y-r*.9,r*.65,Math.PI,Math.PI*2);
+ctx.fill();
+
+// Olhos
+
+ctx.fillStyle="#fff";
+ctx.beginPath();
+ctx.arc(x-r*.22,y-r*.65,3,0,Math.PI*2);
+ctx.arc(x+r*.22,y-r*.65,3,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#252525";
+ctx.beginPath();
+ctx.arc(x-r*.22,y-r*.65,1.5,0,Math.PI*2);
+ctx.arc(x+r*.22,y-r*.65,1.5,0,Math.PI*2);
+ctx.fill();
+
+// Boca
+
+ctx.strokeStyle="#713c35";
+ctx.lineWidth=1.5;
+ctx.beginPath();
+ctx.moveTo(x-5,y-r*.35);
+ctx.lineTo(x+5,y-r*.35);
+ctx.stroke();
+
+}
+
+
+// ================================================
+// CRIAÇÃO DOS HÓSPEDES INDIVIDUAIS
+// ================================================
+
+function createGuest(x=W+60,y=rand(H*.43,H*.61),queue=false){
+
+let c=skins[Math.floor(Math.random()*skins.length)];
+
+let g={
+
+id:Math.random(),
+x,y,
+
+r:rand(29,35),
+
+speed:rand(.65,1)+phase*.05,
+
+bob:rand(0,10),
+
+c,
+
+hp:1,
+
+bag:true,
+
+bagColor:[
+"#9b6945",
+"#344e70",
+"#8c8c8c",
+"#9b3f50"
+][Math.floor(Math.random()*4)],
+
+line:complaints[Math.floor(Math.random()*complaints.length)],
+
+special:null,
+
+queue,
+
+targetX:null,
+targetY:null
+
+};
+
+guests.push(g);
+
+return g;
+
+}
+
+
+// ================================================
+// GRUPOS DE CLIENTES
+// ================================================
+
+function createGroup(){
+
+let total=Math.min(12+phase*2,26);
+
+let columns=5;
+
+let spacing=Math.min(48,W*.085);
+
+for(let i=0;i<total;i++){
+
+let col=i%columns;
+let row=Math.floor(i/columns);
+
+let targetX=Math.min(
+W*.88,
+W*.70+col*spacing
+);
+
+let targetY=H*.55+row*Math.min(43,H*.065);
+
+let g=createGuest(
+W+70+col*15,
+targetY,
+true
+);
+
+g.targetX=targetX;
+g.targetY=targetY;
+
+g.speed=rand(.7,1.1)+phase*.035;
+g.bag=true;
+
+}
+
+toast("CHEGOU UM GRUPO DE "+total+" CLIENTES COM BAGAGEM!");
+
+}
+
+
+// ================================================
+// PERSONAGENS ESPECIAIS
+// ================================================
+
+function createSpecial(kind){
+
+let g={
+
+id:Math.random(),
+special:kind,
+
+x:W+50,
+y:H*.59,
+
+r:34,
+speed:1.3,
+walk:0,
+
+hp:1,
+hasPaused:false,
+pause:0,
+dir:1,
+
+line:""
+
+};
+
+
+// MULHER DO FOGO
+
+if(kind==="blonde"){
+
+g.x=W*.85;
+g.y=H*.57;
+g.speed=1.45;
+g.r=35;
+
+g.line="FOGO! FOGO!";
+
+}
+
+
+// BAGAGEIRO
+
+if(kind==="bellhop"){
+
+g.x=W*.69;
+g.y=H*.59;
+g.speed=0;
+g.r=32;
+
+g.line="PRECISO DA CHAVE PRA FAZER UM TRANSFER!";
+
+g.stationary=true;
+
+}
+
+
+// LADRÃO DOS 50 EUROS
+
+if(kind==="thief"){
+
+g.x=-60;
+g.y=H*.60;
+g.speed=3.2;
+g.r=33;
+
+g.line="";
+
+}
+
+
+// HÓSPEDE QUE RECLAMA DO CHEIRO
+
+if(kind==="complainer"){
+
+g.x=W+60;
+g.y=H*.59;
+g.speed=1.35;
+g.r=34;
+
+g.line="ESTÁ A CHEIRAR A BOSTA NO LOBBY!";
+
+}
+
+guests.push(g);
+
+return g;
+
+}
+
+
+// ================================================
+// DESENHO DOS HÓSPEDES
+// ================================================
+
+function drawGuest(g){
+
+let r=g.r;
+
+let [skin,hair,suit,tie]=g.c;
+
+ctx.save();
+ctx.translate(g.x,g.y);
+
+
+// Mala
+
+if(g.bag){
+
+ctx.fillStyle=g.bagColor;
+ctx.fillRect(r*.48,r*.35,r*.65,r*.65);
+
+ctx.strokeStyle="#e7c58d";
+ctx.lineWidth=2;
+
+ctx.strokeRect(r*.48,r*.35,r*.65,r*.65);
+
+ctx.beginPath();
+
+ctx.moveTo(r*.65,r*.35);
+ctx.lineTo(r*.65,r*.18);
+ctx.lineTo(r*.95,r*.18);
+ctx.lineTo(r*.95,r*.35);
+
+ctx.stroke();
+
+ctx.fillStyle="#222";
+
+ctx.beginPath();
+ctx.arc(r*.62,r*1.02,3,0,Math.PI*2);
+ctx.arc(r*1.02,r*1.02,3,0,Math.PI*2);
+ctx.fill();
+
+}
+
+
+// Corpo
+
+ctx.fillStyle=suit;
+ctx.fillRect(-r*.7,0,r*1.4,r);
+
+
+// Cabeça
+
+ctx.fillStyle=skin;
+
+ctx.beginPath();
+ctx.arc(0,-r*.25,r*.45,0,Math.PI*2);
+ctx.fill();
+
+
+// Cabelo
+
+ctx.fillStyle=hair;
+
+ctx.beginPath();
+ctx.arc(0,-r*.48,r*.45,Math.PI,Math.PI*2);
+ctx.fill();
+
+
+// Olhos
+
+ctx.fillStyle="#fff";
+
+ctx.beginPath();
+ctx.arc(-r*.17,-r*.25,4,0,Math.PI*2);
+ctx.arc(r*.17,-r*.25,4,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#222";
+
+ctx.beginPath();
+ctx.arc(-r*.17,-r*.25,2,0,Math.PI*2);
+ctx.arc(r*.17,-r*.25,2,0,Math.PI*2);
+ctx.fill();
+
+
+// Boca
+
+ctx.strokeStyle="#783e3a";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.arc(0,r*.05,r*.13,.1,Math.PI-.1);
+ctx.stroke();
+
+ctx.restore();
+
+}
+
+
+// ================================================
+// DESENHO DOS PERSONAGENS ESPECIAIS
+// ================================================
+
+function drawSpecial(g){
+
+let r=g.r;
+
+ctx.save();
+ctx.translate(g.x,g.y);
+
+
+// O ladrão corre virado para a direita
+
+if(g.special==="thief"){
+ctx.scale(-1,1);
+}
+
+
+// CORPO
+
+ctx.fillStyle=
+g.special==="blonde"?"#777d86":
+g.special==="bellhop"?"#24558a":
+g.special==="thief"?"#161b23":
+"#354b68";
+
+ctx.fillRect(-r*.45,0,r*.9,r*.9);
+
+
+// PERNAS
+
+ctx.strokeStyle="#252a31";
+ctx.lineWidth=5;
+
+ctx.beginPath();
+
+ctx.moveTo(-r*.2,r*.9);
+ctx.lineTo(-r*.25,r*1.3);
+
+ctx.moveTo(r*.2,r*.9);
+ctx.lineTo(r*.25,r*1.3);
+
+ctx.stroke();
+
+
+// MULHER LOIRA
+
+if(g.special==="blonde"){
+
+ctx.fillStyle="#e9b58c";
+
+ctx.beginPath();
+ctx.arc(0,-r*.3,r*.38,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#e1c16c";
+
+ctx.beginPath();
+ctx.arc(0,-r*.45,r*.43,Math.PI,Math.PI*2);
+ctx.fill();
+
+ctx.fillRect(-r*.42,-r*.4,r*.13,r*.65);
+ctx.fillRect(r*.29,-r*.4,r*.13,r*.65);
+
+ctx.fillStyle="#fff";
+
+ctx.beginPath();
+ctx.arc(-r*.13,-r*.3,3,0,Math.PI*2);
+ctx.arc(r*.13,-r*.3,3,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#222";
+
+ctx.beginPath();
+ctx.arc(-r*.13,-r*.3,1.5,0,Math.PI*2);
+ctx.arc(r*.13,-r*.3,1.5,0,Math.PI*2);
+ctx.fill();
+
+
+// LADRÃO
+
+}else if(g.special==="thief"){
+
+// Nota laranja de 50 euros
+
+ctx.fillStyle="#f28c28";
+
+ctx.fillRect(r*.25,r*.15,r*.85,r*.42);
+
+ctx.strokeStyle="#ffe0a0";
+ctx.lineWidth=2;
+
+ctx.strokeRect(r*.25,r*.15,r*.85,r*.42);
+
+ctx.fillStyle="#71340d";
+ctx.font="bold 13px Arial";
+ctx.textAlign="center";
+
+ctx.fillText("50€",r*.68,r*.43);
+
+
+// Cabeça
+
+ctx.fillStyle="#b9825e";
+
+ctx.beginPath();
+ctx.arc(0,-r*.3,r*.38,0,Math.PI*2);
+ctx.fill();
+
+
+// Gorro
+
+ctx.fillStyle="#080808";
+ctx.fillRect(-r*.4,-r*.58,r*.8,r*.15);
+
+
+// BAGAGEIRO
+
+}else if(g.special==="bellhop"){
+
+ctx.fillStyle="#b9825e";
+
+ctx.beginPath();
+ctx.arc(0,-r*.3,r*.38,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#080808";
+ctx.fillRect(-r*.4,-r*.58,r*.8,r*.15);
+
+ctx.fillStyle="#d83d49";
+ctx.fillRect(-r*.4,-r*.68,r*.8,r*.13);
+
+
+// Crachá
+
+ctx.fillStyle="#ffe1a2";
+ctx.fillRect(-8,8,16,10);
+
+
+// HÓSPEDE DO CHEIRO
+
+}else if(g.special==="complainer"){
+
+ctx.fillStyle="#b9825e";
+
+ctx.beginPath();
+ctx.arc(0,-r*.3,r*.38,0,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#342a24";
+
+ctx.beginPath();
+ctx.arc(0,-r*.48,r*.40,Math.PI,Math.PI*2);
+ctx.fill();
+
+ctx.fillStyle="#354b68";
+ctx.fillRect(-r*.45,0,r*.9,r*.9);
+
+ctx.fillStyle="#fff";
+ctx.font="bold 11px Arial";
+ctx.textAlign="center";
+
+ctx.fillText("QUE NOJO!",0,-r*.85);
+
+}
+
+ctx.restore();
+
+
+// BALÃO DA MULHER
+
+if(g.special==="blonde"){
+
+drawSpeech(
+g.x,
+g.y-r-30,
+"FOGO! FOGO!",
+"#fff0d0"
+);
+
+}
+
+
+// BALÃO DO BAGAGEIRO
+
+if(g.special==="bellhop"){
+
+drawSpeech(
+g.x,
+g.y-r-32,
+"PRECISO DA CHAVE PRA FAZER UM TRANSFER!",
+"#fff3d6"
+);
+
+}
+
+
+// BALÃO DO HÓSPEDE QUE RECLAMA
+
+if(g.special==="complainer"){
+
+drawSpeech(
+g.x,
+g.y-r-32,
+"ESTÁ A CHEIRAR A BOSTA NO LOBBY!",
+"#fff3d6"
+);
+
+}
+
+}
+
+
+// ================================================
+// BALÕES DE FALA
+// ================================================
+
+function drawSpeech(x,y,message,color){
+
+ctx.save();
+
+ctx.font="bold 11px Arial";
+
+let width=Math.min(
+ctx.measureText(message).width+20,
+W*.88
+);
+
+let bx=Math.max(
+width/2+5,
+Math.min(W-width/2-5,x)
+);
+
+ctx.fillStyle=color;
+ctx.strokeStyle="#bd7950";
+ctx.lineWidth=2;
+
+ctx.beginPath();
+ctx.roundRect(
+bx-width/2,
+y-22,
+width,
+35,
+7
+);
+
+ctx.fill();
+ctx.stroke();
+
+ctx.fillStyle="#38251c";
+ctx.textAlign="center";
+ctx.font="bold 10px Arial";
+
+ctx.fillText(message,bx,y);
+
+ctx.restore();
+
+}
+
+
+// ================================================
+// FLECHAS
+// ================================================
+
+function drawArrow(a){
+
+ctx.save();
+
+ctx.translate(a.x,a.y);
+ctx.rotate(a.angle);
+
+ctx.strokeStyle="#e6d2a7";
+ctx.lineWidth=3;
+
+ctx.beginPath();
+ctx.moveTo(-23,0);
+ctx.lineTo(24,0);
+ctx.stroke();
+
+ctx.fillStyle="#ffcf72";
+
+ctx.beginPath();
+ctx.moveTo(24,0);
+ctx.lineTo(15,-5);
+ctx.lineTo(15,5);
+ctx.fill();
+
+ctx.restore();
+
+}
+
+
+// ================================================
+// EFEITOS
+// ================================================
+
+function splash(x,y){
+
+for(let i=0;i<18;i++){
+
+let a=rand(0,Math.PI*2);
+let s=rand(1.5,5);
+
+particles.push({
+
+x,y,
+
+vx:Math.cos(a)*s,
+vy:Math.sin(a)*s,
+
+life:30,
+max:30,
+
+size:rand(2,5),
+
+color:"#ff7583"
+
+});
+
+}
+
+}
+
+
+function updateParticles(dt){
+
+for(let p of particles){
+
+p.x+=p.vx*dt;
+p.y+=p.vy*dt;
+
+p.life-=dt;
+
+}
+
+particles=particles.filter(p=>p.life>0);
+
+}
+
+
+function drawParticles(){
+
+for(let p of particles){
+
+ctx.globalAlpha=p.life/p.max;
+
+ctx.fillStyle=p.color;
+
+ctx.beginPath();
+ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+ctx.fill();
+
+}
+
+ctx.globalAlpha=1;
+
+}
+
+
+// ================================================
+// HUD
+// ================================================
+
+function updateHUD(){
+
+let vals=[
+
+["FASE",phase],
+["PONTOS",score],
+["RECORDE",best],
+["FLECHAS","➶ "+ammo],
+["VIDAS","♥ ".repeat(lives)]
+
+];
+
+$("hud").innerHTML=vals.map(v=>
+`<div class="stat">
+<label>${v[0]}</label>
+<b>${v[1]}</b>
+</div>`
+).join("");
+
+$("phaseLabel").textContent=
+`FASE ${phase} · ${kills}/${needed}`;
+
+$("progressFill").style.width=
+Math.min(100,kills/needed*100)+"%";
+
+}
+
+
+// ================================================
+// AVISOS
+// ================================================
+
+function toast(m){
+
+$("toast").textContent=m;
+$("toast").style.opacity=1;
+
+clearTimeout(toastTimer);
+
+toastTimer=setTimeout(()=>{
+$("toast").style.opacity=0;
+},2200);
+
+}
+
+
+// ================================================
+// INICIAR JOGO
+// ================================================
+
+function startGame(){
+
+score=0;
+phase=1;
+lives=5;
+ammo=65;
+
+combo=0;
+kills=0;
+needed=7;
+
+guests=[];
+arrows=[];
+particles=[];
+
+spawnTimer=0;
+groupTimer=0;
+
+thiefTimer=0;
+blondeTimer=0;
+bellhopTimer=0;
+complaintTimer=0;
+receptionistTimer=0;
+
+receptionistVisible=false;
+receptionistDuration=0;
+
+active=true;
+
+$("screen").style.display="none";
+
+createGroup();
+createSpecial("bellhop");
+
+updateHUD();
+
+}
+
+
+// ================================================
+// DISPARAR
+// ================================================
+
+function shoot(){
+
+if(!active||ammo<=0)return;
+
+ammo--;
+
+let a=Math.atan2(
+mouse.y-bow.y,
+mouse.x-bow.x
+);
+
+arrows.push({
+
+x:bow.x+Math.cos(a)*45,
+y:bow.y+Math.sin(a)*45,
+
+vx:Math.cos(a)*16,
+vy:Math.sin(a)*16,
+
+angle:a,
+life:100,
+
+hit:new Set()
+
+});
+
+updateHUD();
+
+}
+
+
+// ================================================
+// PRÓXIMA FASE
+// ================================================
+
+function nextPhase(){
+
+if(kills<needed)return;
+
+phase++;
+
+kills=0;
+
+needed=7+phase*2;
+
+ammo+=25;
+lives=Math.min(5,lives+1);
+
+updateHUD();
+
+toast("FASE "+phase+"! NOVO GRUPO A CHEGAR!");
+
+createGroup();
+
+}
+
+
+// ================================================
+// FIM DE JOGO
+// ================================================
+
+function gameOver(){
+
+active=false;
+
+$("screen").style.display="flex";
+
+$("box").innerHTML=`
+
+<h2>FIM DE <span>JOGO</span></h2>
+
+<p>
+A receção não aguentou!<br><br>
+PONTOS: <b>${score}</b><br>
+FASE ALCANÇADA: <b>${phase}</b><br>
+RECORDE: <b>${best}</b>
+</p>
+
+<button id="restart">JOGAR NOVAMENTE</button>
+
+`;
+
+$("restart").onclick=startGame;
+
+}
+
+
+// ================================================
+// PAUSA
+// ================================================
+
+function pause(){
+
+if(!active)return;
+
+active=false;
+
+$("screen").style.display="flex";
+
+$("box").innerHTML=`
+
+<h2>JOGO <span>PAUSADO</span></h2>
+
+<p>O hotel está à tua espera.</p>
+
+<button id="resume">CONTINUAR</button>
+
+`;
+
+$("resume").onclick=()=>{
+
+$("screen").style.display="none";
+active=true;
+
+};
+
+}
+
+
+// ================================================
+// ATUALIZAÇÃO DO JOGO
+// ================================================
+
+function update(dt){
+
+frame++;
+
+if(!active)return;
+
+
+// Temporizadores
+
+spawnTimer+=dt;
+groupTimer+=dt;
+
+thiefTimer+=dt;
+blondeTimer+=dt;
+bellhopTimer+=dt;
+complaintTimer+=dt;
+
+
+// ================================================
+// APARECIMENTO DE GRUPOS
+// ================================================
+
+if(groupTimer>Math.max(300,550-phase*12)){
+
+if(guests.filter(g=>!g.special).length<55){
+
+createGroup();
+
+}
+
+groupTimer=0;
+
+}
+
+
+// ================================================
+// LADRÃO DOS 50 EUROS
+// ENTRA PELA ESQUERDA E SAI PELA DIREITA
+// ================================================
+
+if(thiefTimer>rand(500,850)&&
+!guests.some(g=>g.special==="thief")){
+
+createSpecial("thief");
+
+thiefTimer=0;
+
+toast("ATENÇÃO! LADRÃO NO HOTEL! 50 EUROS!");
+
+}
+
+
+// ================================================
+// MULHER LOIRA DO FOGO
+// ================================================
+
+if(blondeTimer>rand(650,1000)&&
+!guests.some(g=>g.special==="blonde")){
+
+createSpecial("blonde");
+
+blondeTimer=0;
+
+toast("FOGO! FOGO!");
+
+// ================================================
+// BAGAGEIRO
+// ================================================
+
+}
+
+if(!guests.some(g=>g.special==="bellhop")&&
+bellhopTimer>550){
+
+createSpecial("bellhop");
+
+bellhopTimer=0;
+
+}
+
+
+// ================================================
+// HÓSPEDE QUE RECLAMA DO CHEIRO
+// ================================================
+
+if(complaintTimer>rand(650,950)&&
+!guests.some(g=>g.special==="complainer")){
+
+createSpecial("complainer");
+
+complaintTimer=0;
+
+toast("UM HÓSPEDE ESTÁ A RECLAMAR DO CHEIRO!");
+
+}
+
+
+// ================================================
+// RECECIONISTA APARECE OCASIONALMENTE
+// ================================================
+
+if(!receptionistVisible){
+
+receptionistTimer+=dt;
+
+if(receptionistTimer>rand(350,650)){
+
+receptionistVisible=true;
+receptionistDuration=rand(150,260);
+receptionistTimer=0;
+
+}
+
+}else{
+
+receptionistDuration-=dt;
+
+if(receptionistDuration<=0){
+
+receptionistVisible=false;
+receptionistTimer=0;
+
+}
+
+}
+
+
+// ================================================
+// HÓSPEDES INDIVIDUAIS
+// ================================================
+
+if(spawnTimer>Math.max(45,110-phase*5)){
+
+if(guests.filter(g=>!g.special).length<55){
+
+createGuest();
+
+}
+
+spawnTimer=0;
+
+}
+
+
+// ================================================
+// MOVIMENTAÇÃO
+// ================================================
+
+for(let g of guests){
+
+
+// BAGAGEIRO: FICA PARADO
+
+if(g.special==="bellhop"){
+
+g.x=W*.69;
+g.y=H*.59;
+
+continue;
+
+}
+
+
+// MULHER DO FOGO
+
+if(g.special==="blonde"){
+
+g.walk+=.22*dt;
+
+g.x+=(g.dir||1)*g.speed*dt;
+
+if(g.x>W+g.r){
+
+g.x=-g.r;
+
+}
+
+continue;
+
+}
+
+
+// LADRÃO: ESQUERDA PARA DIREITA
+
+if(g.special==="thief"){
+
+g.walk+=.30*dt;
+
+g.x+=g.speed*dt;
+
+continue;
+
+}
+
+
+// HÓSPEDE DO CHEIRO: DIREITA PARA ESQUERDA
+
+if(g.special==="complainer"){
+
+g.walk+=.15*dt;
+
+g.x-=g.speed*dt;
+
+continue;
+
+}
+
+
+// GRUPOS DE CLIENTES
+
+if(g.queue){
+
+let dx=g.targetX-g.x;
+
+if(Math.abs(dx)>2){
+
+g.x+=Math.sign(dx)*
+Math.min(Math.abs(dx),g.speed*dt);
+
+}
+
+g.y+=(g.targetY-g.y)*.06*dt;
+
+continue;
+
+}
+
+
+// HÓSPEDES NORMAIS
+
+g.x-=g.speed*dt;
+
+g.y+=Math.sin(frame*.03+g.bob)*.3*dt;
+
+}
+
+
+// ================================================
+// PERSONAGENS QUE SAEM DO ECRÃ
+// ================================================
+
+for(let i=guests.length-1;i>=0;i--){
+
+let g=guests[i];
+
+
+// LADRÃO SAI PELA DIREITA
+
+if(g.special==="thief"&&g.x>W+g.r){
+
+guests.splice(i,1);
+
+toast("O LADRÃO FUGIU COM OS 50 EUROS!");
+
+continue;
+
+}
+
+
+// MULHER DO FOGO
+
+if(g.special==="blonde"&&g.x>W+g.r){
+
+guests.splice(i,1);
+
+continue;
+
+}
+
+
+// HÓSPEDE DO CHEIRO
+
+if(g.special==="complainer"&&g.x < -g.r){
+
+guests.splice(i,1);
+
+continue;
+
+}
+
+
+// HÓSPEDES NORMAIS
+
+if(!g.special&&!g.queue&&g.x < -g.r){
+
+guests.splice(i,1);
+
+lives--;
+combo=0;
+
+toast("OUTRA RECLAMAÇÃO NÃO RESOLVIDA!");
+
+if(lives<=0){
+
+gameOver();
+return;
+
+}
+
+updateHUD();
+
+}
+
+}
+
+
+// ================================================
+// MOVIMENTO DAS FLECHAS
+// ================================================
+
+for(let a of arrows){
+
+a.x+=a.vx*dt;
+a.y+=a.vy*dt;
+
+a.vy+=.045*dt;
+
+a.angle=Math.atan2(a.vy,a.vx);
+
+a.life-=dt;
+
+
+// COLISÕES
+
+for(let i=guests.length-1;i>=0;i--){
+
+let g=guests[i];
+
+if(a.hit.has(g.id))continue;
+
+if(Math.hypot(a.x-g.x,a.y-g.y)<g.r*.8){
+
+a.hit.add(g.id);
+
+g.hp--;
+
+splash(g.x,g.y);
+
+shake=5;
+
+
+if(g.hp<=0){
+
+
+// ================================================
+// BAGAGEIRO ATINGIDO
+// ================================================
+
+if(g.special==="bellhop"){
+
+guests.splice(i,1);
+
+score+=150;
+combo++;
+
+toast("BAGAGEIRO ATINGIDO! A FILA CONTINUA!");
+
+if(score>best){
+
+best=score;
+
+try{
+localStorage.setItem("hotelBossRecord",best);
+}catch(e){}
+
+}
+
+updateHUD();
+
+break;
+
+}
+
+
+// ================================================
+// OUTROS PERSONAGENS
+// ================================================
+
+guests.splice(i,1);
+
+let points=100+combo*20+(g.special?75:0);
+
+score+=points;
+combo++;
+
+
+// MULHER
+
+if(g.special==="blonde"){
+
+toast("A MULHER DO FOGO FOI ATINGIDA!");
+
+}
+
+
+// LADRÃO
+
+else if(g.special==="thief"){
+
+toast("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");
+
+score+=200;
+
+}
+
+
+// HÓSPEDE DO CHEIRO
+
+else if(g.special==="complainer"){
+
+toast("RECLAMAÇÃO DO CHEIRO RESOLVIDA!");
+
+}
+
+
+// CLIENTE NORMAL
+
+else{
+
+toast("CLIENTE RESOLVIDO! +"+points);
+
+}
+
+
+// RECORDE
+
+if(score>best){
+
+best=score;
+
+try{
+localStorage.setItem("hotelBossRecord",best);
+}catch(e){}
+
+}
+
+
+// CONTAGEM DE FASE
+
+if(!g.special){
+
+kills++;
+
+nextPhase();
+
+}
+
+updateHUD();
+
+
+}else{
+
+toast("ACERTA OUTRA VEZ!");
+
+}
+
+break;
+
+}
+
+}
+
+}
+
+
+// REMOVER FLECHAS
+
+arrows=arrows.filter(a=>
+
+a.life>0&&
+a.x<W+80&&
+a.x>-80&&
+a.y<H+80&&
+a.y>-80
+
+);
+
+
+// SEM FLECHAS
+
+if(ammo<=0&&arrows.length===0){
+
+gameOver();
+return;
+
+}
+
+
+// PARTÍCULAS
+
+updateParticles(dt);
+
+}
+
+
+// ================================================
+// DESENHAR TUDO
+// ================================================
+
+function draw(){
+
+ctx.save();
+
+if(shake>0){
+
+ctx.translate(
+rand(-shake,shake),
+rand(-shake,shake)
+);
+
+shake*=.8;
+
+if(shake<.2)shake=0;
+
+}
+
+
+// CENÁRIO
+
+background();
+
+
+// RECECIONISTA
+
+drawReceptionist();
+
+
+// PERSONAGENS
+
+guests.forEach(g=>{
+
+if(g.special){
+
+drawSpecial(g);
+
+}else{
+
+drawGuest(g);
+
+}
+
+});
+
+
+// FLECHAS
+
+arrows.forEach(drawArrow);
+
+
+// PARTÍCULAS
+
+drawParticles();
+
+
+// ARCO
+
+let a=Math.atan2(
+mouse.y-bow.y,
+mouse.x-bow.x
+);
+
+ctx.save();
+
+ctx.translate(bow.x,bow.y);
+ctx.rotate(a);
+
+ctx.strokeStyle="#d9a15c";
+ctx.lineWidth=7;
+
+ctx.beginPath();
+ctx.arc(0,0,34,-1.1,1.1);
+ctx.stroke();
+
+ctx.restore();
+
+
+// MIRA
+
+ctx.strokeStyle="#ff6375";
+ctx.lineWidth=1.5;
+
+ctx.beginPath();
+ctx.arc(mouse.x,mouse.y,13,0,Math.PI*2);
+ctx.stroke();
+
+
+// COMBO
+
+if(combo>1&&active){
+
+ctx.textAlign="center";
+ctx.fillStyle="#ffdf86";
+ctx.font="bold 23px Arial";
+
+ctx.fillText(
+"COMBO x"+combo,
+W/2,
+H*.26
+);
+
+}
+
+ctx.restore();
+
+}
+
+
+// ================================================
+// CICLO PRINCIPAL
+// ================================================
+
+function loop(time){
+
+let dt=Math.min(
+(time-last)/16.67||1,
+2
+);
+
+last=time;
+
+update(dt);
+draw();
+
+requestAnimationFrame(loop);
+
+}
+
+
+// ================================================
+// CONTROLOS
+// ================================================
+
+canvas.addEventListener("pointermove",e=>{
+
+let r=canvas.getBoundingClientRect();
+
+mouse.x=e.clientX-r.left;
+mouse.y=e.clientY-r.top;
+
+});
+
+
+canvas.addEventListener("pointerdown",e=>{
+
+let r=canvas.getBoundingClientRect();
+
+mouse.x=e.clientX-r.left;
+mouse.y=e.clientY-r.top;
+
+if(!active){
+
+if($("screen").style.display==="none")return;
+
+}else{
+
+shoot();
+
+}
+
+});
+
+
+$("mobileShoot").addEventListener("pointerdown",e=>{
+
+e.preventDefault();
+shoot();
+
+});
+
+
+$("start").onclick=startGame;
+
+$("exit").onclick=pause;
+
+
+addEventListener("keydown",e=>{
+
+if(e.key==="Escape")pause();
+
+if(e.code==="Space"){
+
+e.preventDefault();
+shoot();
+
+}
+
+});
+
+
+// ================================================
+// COMEÇAR
+// ================================================
+
+updateHUD();
+
+last=performance.now();
+
+requestAnimationFrame(loop);
+
+})();
+</script>
+
+</body>
+</html>
