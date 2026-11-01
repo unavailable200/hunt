@@ -265,39 +265,6 @@ function pause(){
  if(!active)return;active=false;stopAlarm();$("screen").style.display="flex";$("box").innerHTML=`<h2>JOGO <span>PAUSADO</span></h2><p>O hotel está à tua espera.</p><button id="resume">CONTINUAR</button>`;
  $("resume").onclick=()=>{$("screen").style.display="none";active=true};
 }
-function update(dt){
- frame++;if(!active)return;
- if(alarmOsc){alarmPhase+=dt;alarmOsc.frequency.value=alarmPhase%32<16?880:660}
- spawnTimer+=dt;groupTimer+=dt;thiefTimer+=dt;blondeTimer+=dt;bellhopTimer+=dt;complaintTimer+=dt;
- if(groupTimer>Math.max(300,550-phase*12)){if(guests.filter(g=>!g.special).length<55)createGroup();groupTimer=0}
- if(thiefTimer>rand(500,850)&&!guests.some(g=>g.special==="thief")){createSpecial("thief");thiefTimer=0;toast("LADRÃO NO HOTEL! 50 EUROS!")}
- if(blondeTimer>rand(650,1000)&&!guests.some(g=>g.special==="blonde")){createSpecial("blonde");blondeTimer=0}
- if(!guests.some(g=>g.special==="bellhop")&&bellhopTimer>550){createSpecial("bellhop");bellhopTimer=0}
- if(complaintTimer>rand(650,950)&&!guests.some(g=>g.special==="complainer")){createSpecial("complainer");complaintTimer=0}
- if(!receptionistVisible){
-  receptionistTimer+=dt;
-  if(receptionistTimer>rand(350,650)){receptionistVisible=true;receptionistMode=Math.random()<.65?"focus":"fogo";receptionistDuration=rand(150,260);receptionistTimer=0;if(receptionistMode==="focus"){startAlarm();toast("FOCO! DISPARA NA RECECIONISTA!")}}
- }else{
-  receptionistDuration-=dt;
-  if(receptionistDuration<=0){receptionistVisible=false;stopAlarm();receptionistTimer=0}
- }
- if(spawnTimer>Math.max(45,110-phase*5)){if(guests.filter(g=>!g.special).length<55)createGuest();spawnTimer=0}
- for(const g of guests){
-  g.walk+=.12*dt;
-  if(g.special==="bellhop"){g.x=W*.69;g.y=H*.52;continue}
-  if(g.special==="blonde"){g.x+=(g.dir||1)*g.speed*dt;if(g.x>W+g.r)g.x=-g.r;continue}
-  if(g.special==="thief"){g.x+=g.speed*dt;continue}
-  if(g.special==="complainer"){g.x-=g.speed*dt;continue}
-  if(g.queue){const dx=g.targetX-g.x;if(Math.abs(dx)>2)g.x+=Math.sign(dx)*Math.min(Math.abs(dx),g.speed*dt);g.y+=(g.targetY-g.y)*.06*dt;continue}
-  g.x-=g.speed*dt;g.y+=Math.sin(frame*.03+g.bob)*.3*dt;
- }
-  for(let i=guests.length-1;i>=0;i--){
-  const g=guests[i];
-  if((g.special==="thief"&&g.x>W+g.r)||(g.special==="blonde"&&g.x>W+g.r)||(g.special==="complainer"&&g.x<-g.r)){guests.splice(i,1);continue}
-  if(!g.special&&!g.queue&&g.x<-g.r){guests.splice(i,1);lives--;combo=0;toast("OUTRA RECLAMAÇÃO NÃO RESOLVIDA!");if(lives<=0){gameOver();return}updateHUD()}
- }
- for(const a of arrows){
-  a.x+=a.vx*dt;a.y+=a.vy*dt;a.vy+=.045*dt;a.angle=Math.atan2(a.vy,a.vx);a.life-=dt;
 
   /* A rececionista só é atingida durante o grito FOCO.
      O alarme para imediatamente e a explosão é desenhada no local. */
@@ -357,7 +324,7 @@ $("mobileShoot").addEventListener("pointerdown",e=>{e.preventDefault();shoot()})
 $("start").onclick=startGame;$("exit").onclick=pause;
 addEventListener("keydown",e=>{if(e.key==="Escape")pause();if(e.code==="Space"){e.preventDefault();shoot()}});
 updateHUD();last=performance.now();requestAnimationFrame(loop);
-}();
+})();
 </script>
 </body>
 </html>
