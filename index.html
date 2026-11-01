@@ -1096,24 +1096,27 @@ ctx.globalAlpha=1;
 // ================================================
 // HUD
 // ================================================
-function updateHUD(){
-let vals=[
-["FASE",phase],
-["PONTOS",score],
-["RECORDE",best],
-["FLECHAS","➶ "+ammo],
-["VIDAS","♥ ".repeat(lives)]
-];
-$("hud").innerHTML=vals.map(v=>
-`<div class="stat">
-<label>${v[0]}</label>
-<b>${v[1]}</b>
-</div>`
-).join("");
-$("phaseLabel").textContent=
-`FASE ${phase} · ${kills}/${needed}`;
-$("progressFill").style.width=
-Math.min(100,kills/needed*100)+"%";
+function updateHUD() {
+  const vals = [
+    ["FASE", phase],
+    ["PONTOS", score],
+    ["RECORDE", best],
+    ["FLECHAS", "➶ " + ammo],
+    ["VIDAS", "♥ ".repeat(lives)]
+  ];
+
+  $("hud").innerHTML = vals.map(v =>
+    '<div class="stat">' +
+      '<label>' + v[0] + '</label>' +
+      '<b>' + v[1] + '</b>' +
+    '</div>'
+  ).join("");
+
+  $("phaseLabel").textContent =
+    "FASE " + phase + " · " + kills + "/" + needed;
+
+  $("progressFill").style.width =
+    Math.min(100, kills / needed * 100) + "%";
 }
 // ================================================
 // AVISOS
