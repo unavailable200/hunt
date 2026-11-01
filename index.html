@@ -132,9 +132,7 @@ function drawSpeech(x,y,message,color="#fff3d6"){
  ctx.fillStyle=color;ctx.strokeStyle="#bd7950";ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx-width/2,y-25,width,39,7);ctx.fill();ctx.stroke();
  ctx.fillStyle="#38251c";ctx.textAlign="center";ctx.font="bold 13px Arial";ctx.fillText(message,bx,y);ctx.restore();
 }
-**PARTE 2/3 —** Continue imediatamente após o último `}` da Parte 1.
 
-```html
 function drawGuest(g){
  const r=g.r,walk=Math.sin(g.walk)*r*.14,[skin,hair,suit,tie]=g.c;
  ctx.save();ctx.translate(g.x,g.y);
