@@ -2,18 +2,22 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>HOTEL HUNTER</title>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body,#game{width:100%;height:100%;overflow:hidden;background:#071326;color:white;font-family:Arial,sans-serif;touch-action:none}
-#game{position:fixed;inset:0}canvas{width:100%;height:100%;display:block}
+#game{position:fixed;inset:0}
+canvas{width:100%;height:100%;display:block}
 #logo{position:absolute;top:12px;left:15px;z-index:3}
 #logo small{color:#ff7484;font-size:10px;letter-spacing:2px}
-#logo h1{font-size:25px}#logo span{color:#ff5266}
+#logo h1{font-size:25px}
+#logo span{color:#ff5266}
 #hud{position:absolute;right:10px;top:12px;display:flex;gap:5px;z-index:3;flex-wrap:wrap}
 .stat{background:#0b192d;border:1px solid #52647d;border-radius:8px;padding:7px}
-.stat label{display:block;color:#ff7583;font-size:9px}.stat b{font-size:14px}
+.stat label{display:block;color:#ff7583;font-size:9px}
+.stat b{font-size:14px}
 #progress{position:absolute;top:85px;left:50%;transform:translateX(-50%);width:210px;text-align:center;font-size:11px;z-index:3}
 #progressBar{height:7px;background:#18283e;margin-top:4px}
 #progressFill{height:100%;background:#ff5266;width:0}
@@ -21,9 +25,11 @@ html,body,#game{width:100%;height:100%;overflow:hidden;background:#071326;color:
 #help{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#071426dd;padding:8px;border-radius:8px;font-size:11px;z-index:3;text-align:center}
 #screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#061020d9;z-index:5}
 #box{width:90%;max-width:500px;padding:28px 22px;text-align:center;background:linear-gradient(145deg,#142944,#081426);border:1px solid #70849d;border-radius:16px}
-#box h2{font-size:40px;margin-bottom:12px}#box h2 span{color:#ff566c}
+#box h2{font-size:40px;margin-bottom:12px}
+#box h2 span{color:#ff566c}
 #box p{color:#c6d8e9;line-height:1.6;margin-bottom:18px}
-button{cursor:pointer}#box button{background:#b82d49;color:white;border:1px solid #ff8490;border-radius:9px;padding:13px 24px;font-weight:bold}
+button{cursor:pointer}
+#box button{background:#b82d49;color:white;border:1px solid #ff8490;border-radius:9px;padding:13px 24px;font-weight:bold}
 #mobileShoot{display:none;position:absolute;right:18px;bottom:55px;width:62px;height:62px;border-radius:50%;background:#ad2945;color:white;border:2px solid #ff929c;z-index:4}
 #toast{position:absolute;top:130px;left:50%;transform:translateX(-50%);background:#401c2b;padding:10px;border-radius:8px;z-index:4;opacity:0;text-align:center;max-width:90%;font-size:12px}
 #loginScreen{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#071326}
@@ -31,172 +37,796 @@ button{cursor:pointer}#box button{background:#b82d49;color:white;border:1px soli
 .login-card h1{font-size:29px;color:white;margin-bottom:28px}
 .login-card h1 span{color:#ff5266}
 #loginPassword{width:100%;padding:14px;background:#071326;border:1px solid #52647d;border-radius:8px;color:white;font-size:15px;outline:none;margin-bottom:15px}
+#loginPassword:focus{border-color:#ff5266}
 #loginForm button{width:100%;padding:14px;background:#b82d49;border:none;border-radius:8px;color:white;font-weight:bold;font-size:14px}
 #loginError{color:#ff7484;font-size:12px;margin-top:12px}
+
 @media(max-width:700px){
- #logo{top:6px;left:8px}#logo h1{font-size:18px}
- #hud{top:48px;left:5px;right:5px;justify-content:center}.stat{padding:5px}
- #progress{top:105px}#exit{left:auto;right:8px;transform:none}
- #help{font-size:9px;max-width:95%}#mobileShoot{display:block}#box h2{font-size:30px}
+ #logo{top:6px;left:8px}
+ #logo h1{font-size:18px}
+ #hud{top:48px;left:5px;right:5px;justify-content:center}
+ .stat{padding:5px}
+ #progress{top:105px}
+ #exit{left:auto;right:8px;transform:none}
+ #help{font-size:9px;max-width:95%}
+ #mobileShoot{display:block}
+ #box h2{font-size:30px}
 }
 </style>
 </head>
+
 <body>
-<div id="loginScreen"><div class="login-card">
-<h1>HOTEL <span>HUNTER</span></h1>
-<form id="loginForm"><input type="password" id="loginPassword" placeholder="Palavra-passe" required>
-<button type="submit">ENTRAR</button><p id="loginError"></p></form>
-</div></div>
-<div id="game">
-<canvas id="canvas"></canvas>
-<div id="logo"><small>O HOTEL ESTÁ EM PERIGO</small><h1>HOTEL <span>HUNTER</span></h1></div>
-<div id="hud"></div>
-<div id="progress"><label id="phaseLabel">FASE 1</label><div id="progressBar"><div id="progressFill"></div></div></div>
-<button id="exit">✕ SAIR</button><div id="toast"></div><button id="mobileShoot">➤</button>
-<div id="help">MOUSE PARA MIRAR · CLIQUE PARA DISPARAR · ESPAÇO PARA ATIRAR · ESC PARA PAUSAR</div>
-<div id="screen"><div id="box"><h2>HOTEL <span>HUNTER</span></h2>
-<p>Os hóspedes estão furiosos!<br>A receção está em perigo!<br>O bagageiro precisa da chave para fazer um transfer!<br>Cuidado com o ladrão dos 50 euros!</p>
-<button id="start">COMEÇAR JOGO</button></div></div>
+<div id="loginScreen">
+ <div class="login-card">
+  <h1>HOTEL <span>HUNTER</span></h1>
+  <form id="loginForm">
+   <input type="password" id="loginPassword" placeholder="Palavra-passe" required>
+   <button type="submit">ENTRAR</button>
+   <p id="loginError"></p>
+  </form>
+ </div>
 </div>
+
+<div id="game">
+ <canvas id="canvas"></canvas>
+
+ <div id="logo">
+  <small>O HOTEL ESTÁ EM PERIGO</small>
+  <h1>HOTEL <span>HUNTER</span></h1>
+ </div>
+
+ <div id="hud"></div>
+
+ <div id="progress">
+  <label id="phaseLabel">FASE 1</label>
+  <div id="progressBar"><div id="progressFill"></div></div>
+ </div>
+
+ <button id="exit">✕ SAIR</button>
+ <div id="toast"></div>
+ <button id="mobileShoot">➤</button>
+
+ <div id="help">
+  MOUSE PARA MIRAR · CLIQUE PARA DISPARAR · ESPAÇO PARA ATIRAR · ESC PARA PAUSAR
+ </div>
+
+ <div id="screen">
+  <div id="box">
+   <h2>HOTEL <span>HUNTER</span></h2>
+   <p>
+    Os hóspedes estão furiosos!<br>
+    A receção está em perigo!<br>
+    O bagageiro precisa da chave para fazer um transfer!<br>
+    Cuidado com o ladrão dos 50 euros!
+   </p>
+   <button id="start">COMEÇAR JOGO</button>
+  </div>
+ </div>
+</div>
+
 <script>
 (()=>{
 "use strict";
-const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
 const $=id=>document.getElementById(id);
-let W,H,D,frame=0,last=0,active=false,phase=1,score=0,lives=5,ammo=65;
-let combo=0,kills=0,needed=7,spawnTimer=0,groupTimer=0;
-let thiefTimer=0,blondeTimer=0,bellhopTimer=0,complaintTimer=0;
-let receptionistTimer=0,receptionistVisible=false,receptionistDuration=0;
-let receptionistMode="focus",alarmOsc=null,alarmGain=null,audioCtx=null,alarmPhase=0;
-let guests=[],arrows=[],particles=[],best=0,shake=0,toastTimer;
-const mouse={x:innerWidth*.6,y:innerHeight*.4},bow={x:100,y:0};
+
+let W,H,D,frame=0,last=0;
+let active=false,phase=1,score=0,lives=5,ammo=65;
+let combo=0,kills=0,needed=7;
+let spawnTimer=0,groupTimer=0;
+let thiefTimer=0,blondeTimer=0,bellhopTimer=0;
+let complaintTimer=0,receptionistTimer=0;
+let receptionistVisible=false,receptionistDuration=0;
+let guests=[],arrows=[],particles=[];
+let best=0,shake=0,toastTimer;
+
+const mouse={x:innerWidth*.6,y:innerHeight*.4};
+const bow={x:100,y:0};
 const rand=(a,b)=>a+Math.random()*(b-a);
-const skins=[["#e9b58c","#28202b","#244e78","#e64e57"],["#bd805e","#171a23","#424b5c","#e8bd46"],["#f2c99d","#b8a078","#3d6b57","#56b6d5"],["#d99c79","#33251e","#61416c","#d75e63"]];
+
+const skins=[
+ ["#e9b58c","#28202b","#244e78","#e64e57"],
+ ["#bd805e","#171a23","#424b5c","#e8bd46"],
+ ["#f2c99d","#b8a078","#3d6b57","#56b6d5"],
+ ["#d99c79","#33251e","#61416c","#d75e63"]
+];
+
+const complaints=[
+ "TEM UM CHEIRO DE BOSTA NO LOBBY!",
+ "A MÁQUINA DE CAFÉ NÃO FUNCIONA!",
+ "QUERO UM QUARTO NUM ANDAR ALTO!",
+ "O AC NÃO FUNCIONA!",
+ "QUERO FALAR COM O GERENTE!",
+ "ESTÁ A CHEIRAR A ESGOTO!"
+];
+
 try{best=Number(localStorage.getItem("hotelBossRecord")||0)}catch(e){}
-const receptionImage=new Image();let receptionImageReady=false;
+
+const receptionImage=new Image();
+let receptionImageReady=false;
 receptionImage.onload=()=>receptionImageReady=true;
 receptionImage.onerror=()=>toast("Não foi possível carregar recepcao-jogo.jpg");
 receptionImage.src="recepcao-jogo.jpg";
-function resize(){W=innerWidth;H=innerHeight;D=Math.min(devicePixelRatio||1,2);canvas.width=W*D;canvas.height=H*D;ctx.setTransform(D,0,0,D,0,0);bow.x=Math.max(65,W*.12);bow.y=H*.73}
-addEventListener("resize",resize);resize();
+
+function resize(){
+ W=innerWidth;H=innerHeight;D=Math.min(devicePixelRatio||1,2);
+ canvas.width=W*D;canvas.height=H*D;
+ ctx.setTransform(D,0,0,D,0,0);
+ bow.x=Math.max(65,W*.12);
+ bow.y=H*.73;
+}
+addEventListener("resize",resize);
+resize();
+
+/* Fundo da receção */
 function background(){
- ctx.fillStyle="#38271f";ctx.fillRect(0,0,W,H);
- if(receptionImageReady){const s=Math.max(W/receptionImage.naturalWidth,H/receptionImage.naturalHeight),dw=receptionImage.naturalWidth*s,dh=receptionImage.naturalHeight*s;ctx.drawImage(receptionImage,(W-dw)/2,(H-dh)/2,dw,dh)}
+ ctx.fillStyle="#38271f";
+ ctx.fillRect(0,0,W,H);
+ if(!receptionImageReady)return;
+ const scale=Math.max(W/receptionImage.naturalWidth,H/receptionImage.naturalHeight);
+ const dw=receptionImage.naturalWidth*scale;
+ const dh=receptionImage.naturalHeight*scale;
+ ctx.drawImage(receptionImage,(W-dw)/2,(H-dh)/2,dw,dh);
 }
-function guestSize(){return Math.max(78,Math.min(125,H*.17,W*.13))}
-function createGuest(x=W+60,y=H*.52,queue=false){
- const c=skins[Math.floor(Math.random()*skins.length)],r=guestSize();
- const g={id:Math.random(),x,y,r,speed:rand(.65,1)+phase*.05,bob:rand(0,10),walk:rand(0,10),c,hp:1,bag:true,bagColor:["#9b6945","#344e70","#8c8c8c","#9b3f50"][Math.floor(Math.random()*4)],special:null,queue,targetX:null,targetY:null};
- guests.push(g);return g;
-}
-function createGroup(){
- const total=Math.min(12+phase*2,26),spacing=Math.min(58,W*.085),r=guestSize();
- for(let i=0;i<total;i++){const col=i%5,row=Math.floor(i/5),targetX=Math.min(W*.88,W*.70+col*spacing),targetY=H*.50+row*Math.min(r*1.05,H*.09);const g=createGuest(W+70+col*15,targetY,true);g.targetX=targetX;g.targetY=targetY;g.speed=rand(.7,1.1)+phase*.035}
- toast("CHEGOU UM GRUPO DE "+total+" CLIENTES COM BAGAGEM!");
-}
-function createSpecial(kind){
- const r=guestSize(),g={id:Math.random(),special:kind,x:W+50,y:H*.52,r,speed:1.3,walk:0,hp:1,dir:1,line:""};
- if(kind==="blonde"){g.x=W*.85;g.speed=1.45}
- if(kind==="bellhop"){g.x=W*.69;g.speed=0;g.stationary=true}
- if(kind==="thief"){g.x=-60;g.speed=3.2}
- if(kind==="complainer"){g.speed=1.35}
- guests.push(g);return g;
-}
-function startAlarm(){
- if(alarmOsc||!active)return;
- try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume();alarmOsc=audioCtx.createOscillator();alarmGain=audioCtx.createGain();alarmOsc.type="square";alarmGain.gain.value=.045;alarmOsc.connect(alarmGain);alarmGain.connect(audioCtx.destination);alarmOsc.start()}catch(e){}
-}
-function stopAlarm(){try{if(alarmOsc){alarmOsc.stop();alarmOsc.disconnect();alarmGain.disconnect()}}catch(e){}alarmOsc=null;alarmGain=null}
+
+/* Estagiário atrás do balcão */
 function drawReceptionist(){
  if(!receptionistVisible)return;
- const x=W*.65,deskTop=H*.50,headR=Math.min(54,W*.055),headY=deskTop-headR*.48;
- ctx.save();ctx.translate(x,0);
- const panic=receptionistMode==="focus",wave=Math.sin(frame*.18)*headR*.12;
- ctx.fillStyle="#244e78";ctx.fillRect(-headR*1.5,deskTop-headR*.15,headR*3,headR*2.3);
- ctx.fillStyle="#244e78";ctx.beginPath();ctx.moveTo(-headR*1.7,deskTop+headR*.1);ctx.lineTo(-headR*1.25,deskTop-headR*.35);ctx.lineTo(headR*1.25,deskTop-headR*.35);ctx.lineTo(headR*1.7,deskTop+headR*.1);ctx.fill();
- ctx.fillStyle="#f4f0e8";ctx.beginPath();ctx.moveTo(-headR*.55,deskTop-headR*.3);ctx.lineTo(0,deskTop+headR*.35);ctx.lineTo(headR*.55,deskTop-headR*.3);ctx.fill();
- ctx.fillStyle="#c83248";ctx.beginPath();ctx.moveTo(0,deskTop-headR*.25);ctx.lineTo(-headR*.17,deskTop+headR*.05);ctx.lineTo(0,deskTop+headR*.48);ctx.lineTo(headR*.17,deskTop+headR*.05);ctx.fill();
- ctx.fillStyle="#d9a17d";ctx.fillRect(-headR*.25,headY+headR*.55,headR*.5,headR*.45);
- ctx.fillStyle="#e6b58e";ctx.beginPath();ctx.ellipse(0,headY,headR*.94,headR*1.08,0,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#17151a";ctx.beginPath();ctx.ellipse(0,headY-headR*.38,headR*.98,headR*.68,0,Math.PI,Math.PI*2);ctx.fill();ctx.fillRect(-headR*.96,headY-headR*.43,headR*.28,headR*.65);
- ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-headR*.3,headY,headR*.13,0,Math.PI*2);ctx.arc(headR*.3,headY,headR*.13,0,Math.PI*2);ctx.fill();
- ctx.fillStyle="#222";ctx.beginPath();ctx.arc(-headR*.3,headY,headR*.065,0,Math.PI*2);ctx.arc(headR*.3,headY,headR*.065,0,Math.PI*2);ctx.fill();
- ctx.strokeStyle="#713c35";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,headY+headR*.25,headR*.24,.15,Math.PI-.15);ctx.stroke();
- ctx.fillStyle="#f4c65e";ctx.fillRect(headR*.5,deskTop+headR*.05,headR*.95,headR*.38);ctx.fillStyle="#33251c";ctx.font=`bold ${Math.max(7,headR*.19)}px Arial`;ctx.textAlign="center";ctx.fillText("ESTAGIÁRIO",headR*.975,deskTop+headR*.21);ctx.fillText("DA VEZ",headR*.975,deskTop+headR*.36);
+
+ const x=W*.65;
+ const deskTop=H*.50;
+ const headR=Math.min(34,W*.035);
+ const headY=deskTop-headR*.48;
+
+ ctx.save();
+
+ /* Corpo atrás do balcão */
+ ctx.fillStyle="#244e78";
+ ctx.fillRect(x-headR*1.5,deskTop-headR*.15,headR*3,headR*2.3);
+
+ /* Ombros e paletó */
+ ctx.fillStyle="#244e78";
+ ctx.beginPath();
+ ctx.moveTo(x-headR*1.7,deskTop+headR*.1);
+ ctx.lineTo(x-headR*1.25,deskTop-headR*.35);
+ ctx.lineTo(x+headR*1.25,deskTop-headR*.35);
+ ctx.lineTo(x+headR*1.7,deskTop+headR*.1);
+ ctx.fill();
+
+ /* Camisa */
+ ctx.fillStyle="#f4f0e8";
+ ctx.beginPath();
+ ctx.moveTo(x-headR*.55,deskTop-headR*.3);
+ ctx.lineTo(x,deskTop+headR*.35);
+ ctx.lineTo(x+headR*.55,deskTop-headR*.3);
+ ctx.fill();
+
+ /* Gravata vermelha */
+ ctx.fillStyle="#c83248";
+ ctx.beginPath();
+ ctx.moveTo(x,deskTop-headR*.25);
+ ctx.lineTo(x-headR*.17,deskTop+headR*.05);
+ ctx.lineTo(x,deskTop+headR*.48);
+ ctx.lineTo(x+headR*.17,deskTop+headR*.05);
+ ctx.fill();
+
+ /* Pescoço */
+ ctx.fillStyle="#d9a17d";
+ ctx.fillRect(x-headR*.25,headY+headR*.55,headR*.5,headR*.45);
+
+ /* Cabeça grande */
+ ctx.fillStyle="#e6b58e";
+ ctx.beginPath();
+ ctx.ellipse(x,headY,headR*.94,headR*1.08,0,0,Math.PI*2);
+ ctx.fill();
+
+ /* Cabelo preto */
+ ctx.fillStyle="#17151a";
+ ctx.beginPath();
+ ctx.ellipse(x,headY-headR*.38,headR*.98,headR*.68,0,Math.PI,Math.PI*2);
+ ctx.fill();
+ ctx.fillRect(x-headR*.96,headY-headR*.43,headR*.28,headR*.65);
+
+ /* Olhos */
+ ctx.fillStyle="#fff";
+ ctx.beginPath();
+ ctx.arc(x-headR*.3,headY,headR*.13,0,Math.PI*2);
+ ctx.arc(x+headR*.3,headY,headR*.13,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle="#222";
+ ctx.beginPath();
+ ctx.arc(x-headR*.3,headY,headR*.065,0,Math.PI*2);
+ ctx.arc(x+headR*.3,headY,headR*.065,0,Math.PI*2);
+ ctx.fill();
+
+ /* Sorriso */
+ ctx.strokeStyle="#713c35";
+ ctx.lineWidth=2;
+ ctx.beginPath();
+ ctx.arc(x,headY+headR*.25,headR*.24,.15,Math.PI-.15);
+ ctx.stroke();
+
+ /* Crachá */
+ ctx.fillStyle="#f4c65e";
+ ctx.fillRect(x+headR*.5,deskTop+headR*.05,headR*.95,headR*.38);
+ ctx.strokeStyle="#5d4722";
+ ctx.lineWidth=1;
+ ctx.strokeRect(x+headR*.5,deskTop+headR*.05,headR*.95,headR*.38);
+ ctx.fillStyle="#33251c";
+ ctx.font=`bold ${Math.max(7,headR*.19)}px Arial`;
+ ctx.textAlign="center";
+ ctx.fillText("ESTAGIÁRIO",x+headR*.975,deskTop+headR*.21);
+ ctx.fillText("DA VEZ",x+headR*.975,deskTop+headR*.36);
+
  ctx.restore();
- if(panic){drawSpeech(x,headY-headR-28,"FOCO!","#ffe6a1");}
- else drawSpeech(x,headY-headR-28,"FOGO!","#ffb7b7");
 }
+ /* Hóspedes maiores: tamanho adaptado à altura do balcão */
+function guestSize(){
+ return Math.max(48,Math.min(78,H*.085));
+}
+
+function createGuest(x=W+60,y=H*.52,queue=false){
+ const c=skins[Math.floor(Math.random()*skins.length)];
+ const r=guestSize();
+
+ const g={
+  id:Math.random(),x,y,r,
+  speed:rand(.65,1)+phase*.05,
+  bob:rand(0,10),walk:rand(0,10),
+  c,hp:1,bag:true,
+  bagColor:["#9b6945","#344e70","#8c8c8c","#9b3f50"][Math.floor(Math.random()*4)],
+  line:complaints[Math.floor(Math.random()*complaints.length)],
+  special:null,queue,
+  targetX:null,targetY:null
+ };
+ guests.push(g);
+ return g;
+}
+
+function createGroup(){
+ const total=Math.min(12+phase*2,26);
+ const spacing=Math.min(58,W*.085);
+ const r=guestSize();
+
+ for(let i=0;i<total;i++){
+  const col=i%5,row=Math.floor(i/5);
+  const targetX=Math.min(W*.88,W*.70+col*spacing);
+  const targetY=H*.50+row*Math.min(r*1.05,H*.09);
+
+  const g=createGuest(W+70+col*15,targetY,true);
+  g.targetX=targetX;
+  g.targetY=targetY;
+  g.speed=rand(.7,1.1)+phase*.035;
+ }
+
+ toast("CHEGOU UM GRUPO DE "+total+" CLIENTES COM BAGAGEM!");
+}
+
+function createSpecial(kind){
+ const r=guestSize();
+ const g={
+  id:Math.random(),special:kind,
+  x:W+50,y:H*.52,r,speed:1.3,
+  walk:0,hp:1,hasPaused:false,pause:0,dir:1,
+  line:""
+ };
+
+ if(kind==="blonde"){
+  g.x=W*.85;g.y=H*.52;g.speed=1.45;
+  g.line="FOGO! FOGO!";
+ }
+ if(kind==="bellhop"){
+  g.x=W*.69;g.y=H*.52;g.speed=0;
+  g.line="PRECISO DA CHAVE PRA FAZER UM TRANSFER!";
+  g.stationary=true;
+ }
+ if(kind==="thief"){
+  g.x=-60;g.y=H*.52;g.speed=3.2;
+ }
+ if(kind==="complainer"){
+  g.x=W+60;g.y=H*.52;g.speed=1.35;
+  g.line="ESTÁ A CHEIRAR A BOSTA NO LOBBY!";
+ }
+
+ guests.push(g);
+ return g;
+}
+
+/* Desenho de hóspedes com pernas e braços animados */
+function drawGuest(g){
+ const r=g.r;
+ const walk=Math.sin(g.walk)*r*.14;
+ const [skin,hair,suit,tie]=g.c;
+
+ ctx.save();
+ ctx.translate(g.x,g.y);
+
+ /* Pernas em movimento */
+ ctx.strokeStyle="#252a31";
+ ctx.lineWidth=Math.max(4,r*.12);
+ ctx.lineCap="round";
+ ctx.beginPath();
+ ctx.moveTo(-r*.22,r*.82);
+ ctx.lineTo(-r*.25+walk,r*1.23);
+ ctx.moveTo(r*.22,r*.82);
+ ctx.lineTo(r*.25-walk,r*1.23);
+ ctx.stroke();
+
+ /* Sapatos */
+ ctx.strokeStyle="#17191c";
+ ctx.lineWidth=Math.max(5,r*.14);
+ ctx.beginPath();
+ ctx.moveTo(-r*.25+walk,r*1.23);
+ ctx.lineTo(-r*.42+walk,r*1.23);
+ ctx.moveTo(r*.25-walk,r*1.23);
+ ctx.lineTo(r*.42-walk,r*1.23);
+ ctx.stroke();
+
+ /* Mala e rodas */
+ if(g.bag){
+  ctx.fillStyle=g.bagColor;
+  ctx.fillRect(r*.48,r*.35,r*.65,r*.65);
+  ctx.strokeStyle="#e7c58d";
+  ctx.lineWidth=2;
+  ctx.strokeRect(r*.48,r*.35,r*.65,r*.65);
+  ctx.beginPath();
+  ctx.moveTo(r*.65,r*.35);
+  ctx.lineTo(r*.65,r*.18);
+  ctx.lineTo(r*.95,r*.18);
+  ctx.lineTo(r*.95,r*.35);
+  ctx.stroke();
+  ctx.fillStyle="#222";
+  ctx.beginPath();
+  ctx.arc(r*.62,r*1.02,3,0,Math.PI*2);
+  ctx.arc(r*1.02,r*1.02,3,0,Math.PI*2);
+  ctx.fill();
+ }
+
+ /* Braços */
+ ctx.strokeStyle=suit;
+ ctx.lineWidth=r*.28;
+ ctx.lineCap="round";
+ ctx.beginPath();
+ ctx.moveTo(-r*.48,r*.12);
+ ctx.lineTo(-r*.68,r*.62+walk);
+ ctx.moveTo(r*.48,r*.12);
+ ctx.lineTo(r*.68,r*.62-walk);
+ ctx.stroke();
+
+ /* Corpo */
+ ctx.fillStyle=suit;
+ ctx.fillRect(-r*.52,0,r*1.04,r*.9);
+
+ /* Camisa e gravata */
+ ctx.fillStyle="#f4f0e8";
+ ctx.beginPath();
+ ctx.moveTo(-r*.17,0);
+ ctx.lineTo(0,r*.25);
+ ctx.lineTo(r*.17,0);
+ ctx.fill();
+
+ ctx.fillStyle=tie;
+ ctx.beginPath();
+ ctx.moveTo(0,r*.08);
+ ctx.lineTo(-r*.09,r*.21);
+ ctx.lineTo(0,r*.68);
+ ctx.lineTo(r*.09,r*.21);
+ ctx.fill();
+
+ /* Cabeça */
+ ctx.fillStyle=skin;
+ ctx.beginPath();
+ ctx.arc(0,-r*.25,r*.48,0,Math.PI*2);
+ ctx.fill();
+
+ /* Cabelo */
+ ctx.fillStyle=hair;
+ ctx.beginPath();
+ ctx.arc(0,-r*.48,r*.48,Math.PI,Math.PI*2);
+ ctx.fill();
+
+ /* Olhos */
+ ctx.fillStyle="#fff";
+ ctx.beginPath();
+ ctx.arc(-r*.18,-r*.25,r*.09,0,Math.PI*2);
+ ctx.arc(r*.18,-r*.25,r*.09,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle="#222";
+ ctx.beginPath();
+ ctx.arc(-r*.18,-r*.25,r*.045,0,Math.PI*2);
+ ctx.arc(r*.18,-r*.25,r*.045,0,Math.PI*2);
+ ctx.fill();
+
+ /* Sorriso */
+ ctx.strokeStyle="#783e3a";
+ ctx.lineWidth=2;
+ ctx.beginPath();
+ ctx.arc(0,r*.02,r*.14,.1,Math.PI-.1);
+ ctx.stroke();
+
+ ctx.restore();
+}
+
 function drawSpeech(x,y,message,color="#fff3d6"){
- ctx.save();ctx.font="bold 14px Arial";const width=Math.min(ctx.measureText(message).width+24,W*.88),bx=Math.max(width/2+5,Math.min(W-width/2-5,x));
- ctx.fillStyle=color;ctx.strokeStyle="#bd7950";ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(bx-width/2,y-25,width,39,7);ctx.fill();ctx.stroke();
- ctx.fillStyle="#38251c";ctx.textAlign="center";ctx.font="bold 13px Arial";ctx.fillText(message,bx,y);ctx.restore();
+ ctx.save();
+ ctx.font="bold 11px Arial";
+ const width=Math.min(ctx.measureText(message).width+20,W*.88);
+ const bx=Math.max(width/2+5,Math.min(W-width/2-5,x));
+
+ ctx.fillStyle=color;
+ ctx.strokeStyle="#bd7950";
+ ctx.lineWidth=2;
+ ctx.beginPath();
+ ctx.roundRect(bx-width/2,y-22,width,35,7);
+ ctx.fill();ctx.stroke();
+
+ ctx.fillStyle="#38251c";
+ ctx.textAlign="center";
+ ctx.font="bold 10px Arial";
+ ctx.fillText(message,bx,y);
+ ctx.restore();
 }
+
+function drawSpecial(g){
+ const r=g.r;
+ ctx.save();
+ ctx.translate(g.x,g.y);
+ if(g.special==="thief")ctx.scale(-1,1);
+
+ const walk=Math.sin(g.walk)*r*.13;
+ const suit=g.special==="blonde"?"#777d86":
+  g.special==="bellhop"?"#24558a":
+  g.special==="thief"?"#161b23":"#354b68";
+
+ /* Pernas animadas */
+ ctx.strokeStyle="#252a31";
+ ctx.lineWidth=r*.12;
+ ctx.lineCap="round";
+ ctx.beginPath();
+ ctx.moveTo(-r*.2,r*.85);
+ ctx.lineTo(-r*.25+walk,r*1.25);
+ ctx.moveTo(r*.2,r*.85);
+ ctx.lineTo(r*.25-walk,r*1.25);
+ ctx.stroke();
+
+ /* Corpo e braços */
+ ctx.fillStyle=suit;
+ ctx.fillRect(-r*.45,0,r*.9,r*.9);
+ ctx.strokeStyle=suit;
+ ctx.lineWidth=r*.23;
+ ctx.beginPath();
+ ctx.moveTo(-r*.4,r*.12);
+ ctx.lineTo(-r*.6,r*.6+walk);
+ ctx.moveTo(r*.4,r*.12);
+ ctx.lineTo(r*.6,r*.6-walk);
+ ctx.stroke();
+
+ if(g.special==="thief"){
+  ctx.fillStyle="#f28c28";
+  ctx.fillRect(r*.25,r*.15,r*.85,r*.42);
+  ctx.strokeStyle="#ffe0a0";
+  ctx.lineWidth=2;
+  ctx.strokeRect(r*.25,r*.15,r*.85,r*.42);
+  ctx.fillStyle="#71340d";
+  ctx.font="bold 15px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("50€",r*.68,r*.43);
+ }
+
+ /* Cabeça */
+ const skin=g.special==="thief"?"#b9825e":"#e9b58c";
+ ctx.fillStyle=skin;
+ ctx.beginPath();
+ ctx.arc(0,-r*.3,r*.42,0,Math.PI*2);
+ ctx.fill();
+
+ /* Cabelo */
+ ctx.fillStyle=g.special==="blonde"?"#e1c16c":"#17151a";
+ ctx.beginPath();
+ ctx.arc(0,-r*.48,r*.45,Math.PI,Math.PI*2);
+ ctx.fill();
+
+ if(g.special==="blonde"){
+  ctx.fillRect(-r*.42,-r*.4,r*.13,r*.65);
+  ctx.fillRect(r*.29,-r*.4,r*.13,r*.65);
+ }
+ if(g.special==="bellhop"){
+  ctx.fillStyle="#d83d49";
+  ctx.fillRect(-r*.4,-r*.68,r*.8,r*.13);
+  ctx.fillStyle="#ffe1a2";
+  ctx.fillRect(-8,8,16,10);
+ }
+
+ ctx.fillStyle="#fff";
+ ctx.beginPath();
+ ctx.arc(-r*.13,-r*.3,3,0,Math.PI*2);
+ ctx.arc(r*.13,-r*.3,3,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle="#222";
+ ctx.beginPath();
+ ctx.arc(-r*.13,-r*.3,1.5,0,Math.PI*2);
+ ctx.arc(r*.13,-r*.3,1.5,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.restore();
+
+ if(g.special==="blonde")drawSpeech(g.x,g.y-r-30,"FOGO! FOGO!");
+ if(g.special==="bellhop")drawSpeech(g.x,g.y-r-32,"PRECISO DA CHAVE PRA FAZER UM TRANSFER!");
+ if(g.special==="complainer")drawSpeech(g.x,g.y-r-32,"ESTÁ A CHEIRAR A BOSTA NO LOBBY!");
+}
+
+function drawArrow(a){
+ ctx.save();
+ ctx.translate(a.x,a.y);
+ ctx.rotate(a.angle);
+ ctx.strokeStyle="#e6d2a7";
+ ctx.lineWidth=4;
+ ctx.beginPath();
+ ctx.moveTo(-23,0);ctx.lineTo(24,0);
+ ctx.stroke();
+ ctx.fillStyle="#ffcf72";
+ ctx.beginPath();
+ ctx.moveTo(24,0);ctx.lineTo(15,-5);ctx.lineTo(15,5);
+ ctx.fill();
+ ctx.restore();
+}
+
+function splash(x,y){
+ for(let i=0;i<18;i++){
+  const a=rand(0,Math.PI*2),s=rand(1.5,5);
+  particles.push({
+   x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+   life:30,max:30,size:rand(2,5),color:"#ff7583"
+  });
+ }
+}
+
+function updateParticles(dt){
+ for(const p of particles){
+  p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;
+ }
+ particles=particles.filter(p=>p.life>0);
+}
+
+function drawParticles(){
+ for(const p of particles){
+  ctx.globalAlpha=p.life/p.max;
+  ctx.fillStyle=p.color;
+  ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+  ctx.fill();
+ }
+ ctx.globalAlpha=1;
+}
+ function updateHUD(){
+ const vals=[
+  ["FASE",phase],["PONTOS",score],["RECORDE",best],
+  ["FLECHAS","➶ "+ammo],["VIDAS","♥ ".repeat(lives)]
+ ];
+ $("hud").innerHTML=vals.map(v=>
+  `<div class="stat"><label>${v[0]}</label><b>${v[1]}</b></div>`
+ ).join("");
+ $("phaseLabel").textContent=`FASE ${phase} · ${kills}/${needed}`;
+ $("progressFill").style.width=Math.min(100,kills/needed*100)+"%";
+}
+
+function toast(m){
+ $("toast").textContent=m;
+ $("toast").style.opacity=1;
+ clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>$("toast").style.opacity=0,2200);
+}
+
+function startGame(){
+ score=0;phase=1;lives=5;ammo=65;
+ combo=0;kills=0;needed=7;
+ guests=[];arrows=[];particles=[];
+ spawnTimer=groupTimer=0;
+ thiefTimer=blondeTimer=bellhopTimer=complaintTimer=0;
+ receptionistTimer=0;
+ receptionistVisible=false;
+ receptionistDuration=0;
+ active=true;
+ $("screen").style.display="none";
+ createGroup();
+ createSpecial("bellhop");
+ updateHUD();
+}
+
+function shoot(){
+ if(!active||ammo<=0)return;
+ ammo--;
+ const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
+ arrows.push({
+  x:bow.x+Math.cos(a)*45,y:bow.y+Math.sin(a)*45,
+  vx:Math.cos(a)*16,vy:Math.sin(a)*16,
+  angle:a,life:100,hit:new Set()
+ });
+ updateHUD();
+}
+
+function nextPhase(){
+ if(kills<needed)return;
+ phase++;kills=0;needed=7+phase*2;
+ ammo+=25;lives=Math.min(5,lives+1);
+ updateHUD();
+ toast("FASE "+phase+"! NOVO GRUPO A CHEGAR!");
+ createGroup();
+}
+
+function gameOver(){
+ active=false;
+ $("screen").style.display="flex";
+ $("box").innerHTML=`
+  <h2>FIM DE <span>JOGO</span></h2>
+  <p>A receção não aguentou!<br><br>
+  PONTOS: <b>${score}</b><br>
+  FASE ALCANÇADA: <b>${phase}</b><br>
+  RECORDE: <b>${best}</b></p>
+  <button id="restart">JOGAR NOVAMENTE</button>`;
+ $("restart").onclick=startGame;
+}
+
+function pause(){
+ if(!active)return;
+ active=false;
+ $("screen").style.display="flex";
+ $("box").innerHTML=`
+  <h2>JOGO <span>PAUSADO</span></h2>
+  <p>O hotel está à tua espera.</p>
+  <button id="resume">CONTINUAR</button>`;
+ $("resume").onclick=()=>{
+  $("screen").style.display="none";
+  active=true;
+ };
+}
+
+function update(dt){
+ frame++;
+ if(!active)return;
+
+ spawnTimer+=dt;groupTimer+=dt;thiefTimer+=dt;
+ blondeTimer+=dt;bellhopTimer+=dt;complaintTimer+=dt;
+
+ if(groupTimer>Math.max(300,550-phase*12)){
+  if(guests.filter(g=>!g.special).length<55)createGroup();
+  groupTimer=0;
+ }
+
+ if(thiefTimer>rand(500,850)&&!guests.some(g=>g.special==="thief")){
+  createSpecial("thief");thiefTimer=0;
+  toast("ATENÇÃO! LADRÃO NO HOTEL! 50 EUROS!");
+ }
+
+ if(blondeTimer>rand(650,1000)&&!guests.some(g=>g.special==="blonde")){
+  createSpecial("blonde");blondeTimer=0;toast("FOGO! FOGO!");
+ }
+
+ if(!guests.some(g=>g.special==="bellhop")&&bellhopTimer>550){
+  createSpecial("bellhop");bellhopTimer=0;
+ }
+
+ if(complaintTimer>rand(650,950)&&!guests.some(g=>g.special==="complainer")){
+  createSpecial("complainer");complaintTimer=0;
+  toast("UM HÓSPEDE ESTÁ A RECLAMAR DO CHEIRO!");
+ }
+
+ if(!receptionistVisible){
+  receptionistTimer+=dt;
+  if(receptionistTimer>rand(350,650)){
+   receptionistVisible=true;
+   receptionistDuration=rand(150,260);
+   receptionistTimer=0;
+  }
+ }else{
+  receptionistDuration-=dt;
+  if(receptionistDuration<=0){
+   receptionistVisible=false;receptionistTimer=0;
+  }
+ }
+
+ if(spawnTimer>Math.max(45,110-phase*5)){
+  if(guests.filter(g=>!g.special).length<55)createGuest();
+  spawnTimer=0;
+ }
+
+ for(const g of guests){
+  g.walk+=.12*dt;
+
+  if(g.special==="bellhop"){
+   g.x=W*.69;g.y=H*.52;
+   continue;
+  }
+
+  if(g.special==="blonde"){
+   g.x+=(g.dir||1)*g.speed*dt;
+   if(g.x>W+g.r)g.x=-g.r;
+   continue;
+  }
+
+  if(g.special==="thief"){
+   g.x+=g.speed*dt;
+   continue;
+  }
+
+  if(g.special==="complainer"){
+   g.x-=g.speed*dt;
+   continue;
+  }
+
+  if(g.queue){
+   const dx=g.targetX-g.x;
+   if(Math.abs(dx)>2){
+    g.x+=Math.sign(dx)*Math.min(Math.abs(dx),g.speed*dt);
+   }
+   g.y+=(g.targetY-g.y)*.06*dt;
+   continue;
+  }
+
+  g.x-=g.speed*dt;
+  g.y+=Math.sin(frame*.03+g.bob)*.3*dt;
+ }
+
+ for(let i=guests.length-1;i>=0;i--){
+  const g=guests[i];
+
+  if(g.special==="thief"&&g.x>W+g.r){
+   guests.splice(i,1);
+   toast("O LADRÃO FUGIU COM OS 50 EUROS!");
+   continue;
+  }
+
+  if(g.special==="blonde"&&g.x>W+g.r){
+   guests.splice(i,1);continue;
+  }
+
+  if(g.special==="complainer"&&g.x < -g.r){
+   guests.splice(i,1);continue;
+  }
+
+  if(!g.special&&!g.queue&&g.x < -g.r){
+   guests.splice(i,1);lives--;combo=0;
+   toast("OUTRA RECLAMAÇÃO NÃO RESOLVIDA!");
+   if(lives<=0){gameOver();return;}
+   updateHUD();
+  }
+ }
 
  for(const a of arrows){
-  a.x+=a.vx*dt;
-  a.y+=a.vy*dt;
+  a.x+=a.vx*dt;a.y+=a.vy*dt;
+  a.vy+=.045*dt;a.angle=Math.atan2(a.vy,a.vx);
   a.life-=dt;
-
-  /* A rececionista só é atingida durante o grito FOCO. */
-  if(receptionistVisible&&receptionistMode==="focus"){
-   const rx=W*.65,rr=Math.min(54,W*.055),ry=H*.50-rr*.48;
-   if(!a.hit.has("receptionist")&&Math.hypot(a.x-rx,a.y-ry)<rr*1.25){
-    a.hit.add("receptionist");
-    receptionistVisible=false;
-    stopAlarm();
-    splash(rx,ry,"#ffb52e");
-    splash(rx,ry,"#ff5266");
-    shake=13;
-    score+=250;
-    combo++;
-    toast("RECECIONISTA ATINGIDA! EXPLOSÃO! +250");
-    if(score>best){
-     best=score;
-     try{localStorage.setItem("hotelBossRecord",best)}catch(e){}
-    }
-    receptionistTimer=0;
-    updateHUD();
-   }
-  }
 
   for(let i=guests.length-1;i>=0;i--){
    const g=guests[i];
    if(a.hit.has(g.id))continue;
 
    if(Math.hypot(a.x-g.x,a.y-g.y)<g.r*.8){
-    a.hit.add(g.id);
-    g.hp--;
-    splash(g.x,g.y);
-    shake=5;
+    a.hit.add(g.id);g.hp--;splash(g.x,g.y);shake=5;
 
     if(g.hp<=0){
      guests.splice(i,1);
 
      if(g.special==="bellhop"){
-      score+=150;
-      combo++;
-      toast("BAGAGEIRO ATINGIDO!");
+      score+=150;combo++;
+      toast("BAGAGEIRO ATINGIDO! A FILA CONTINUA!");
      }else{
       const points=100+combo*20+(g.special?75:0);
-      score+=points;
-      combo++;
+      score+=points;combo++;
 
-      if(g.special==="thief"){
+      if(g.special==="blonde")toast("A MULHER DO FOGO FOI ATINGIDA!");
+      else if(g.special==="thief"){
        toast("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");
        score+=200;
-      }else if(g.special==="blonde"){
-       toast("A MULHER DO FOGO FOI ATINGIDA!");
-      }else if(g.special==="complainer"){
-       toast("RECLAMAÇÃO RESOLVIDA!");
-      }else{
-       toast("CLIENTE RESOLVIDO! +"+points);
       }
+      else if(g.special==="complainer")toast("RECLAMAÇÃO DO CHEIRO RESOLVIDA!");
+      else toast("CLIENTE RESOLVIDO! +"+points);
 
-      if(!g.special){
-       kills++;
-       nextPhase();
-      }
+      if(!g.special){kills++;nextPhase();}
      }
 
      if(score>best){
@@ -204,9 +834,8 @@ function drawSpeech(x,y,message,color="#fff3d6"){
       try{localStorage.setItem("hotelBossRecord",best)}catch(e){}
      }
      updateHUD();
-    }else{
-     toast("ACERTA OUTRA VEZ!");
-    }
+    }else toast("ACERTA OUTRA VEZ!");
+
     break;
    }
   }
@@ -215,173 +844,108 @@ function drawSpeech(x,y,message,color="#fff3d6"){
  arrows=arrows.filter(a=>
   a.life>0&&a.x<W+80&&a.x>-80&&a.y<H+80&&a.y>-80
  );
- if(ammo<=0&&arrows.length===0){
-  gameOver();
-  return;
- }
-function updateParticles(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
-function drawParticles(){for(const p of particles){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
-function updateHUD(){
- const vals=[["FASE",phase],["PONTOS",score],["RECORDE",best],["FLECHAS","➶ "+ammo],["VIDAS","♥ ".repeat(lives)]];
- $("hud").innerHTML=vals.map(v=>`<div class="stat"><label>${v[0]}</label><b>${v[1]}</b></div>`).join("");
- $("phaseLabel").textContent=`FASE ${phase} · ${kills}/${needed}`;$("progressFill").style.width=Math.min(100,kills/needed*100)+"%";
-}
-function toast(m){$("toast").textContent=m;$("toast").style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").style.opacity=0,2200)}
-function startGame(){
- stopAlarm();score=0;phase=1;lives=5;ammo=65;combo=0;kills=0;needed=7;guests=[];arrows=[];particles=[];
- spawnTimer=groupTimer=thiefTimer=blondeTimer=bellhopTimer=complaintTimer=receptionistTimer=0;
- receptionistVisible=false;receptionistDuration=0;active=true;$("screen").style.display="none";createGroup();createSpecial("bellhop");updateHUD();
-}
-function shoot(){
- if(!active||ammo<=0)return;ammo--;const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
- arrows.push({x:bow.x+Math.cos(a)*45,y:bow.y+Math.sin(a)*45,vx:Math.cos(a)*16,vy:Math.sin(a)*16,angle:a,life:100,hit:new Set()});updateHUD();
-}
-function nextPhase(){if(kills<needed)return;phase++;kills=0;needed=7+phase*2;ammo+=25;lives=Math.min(5,lives+1);updateHUD();toast("FASE "+phase+"! NOVO GRUPO!");createGroup()}
-function gameOver(){
- active=false;stopAlarm();$("screen").style.display="flex";$("box").innerHTML=`<h2>FIM DE <span>JOGO</span></h2><p>PONTOS: <b>${score}</b><br>FASE: <b>${phase}</b><br>RECORDE: <b>${best}</b></p><button id="restart">JOGAR NOVAMENTE</button>`;$("restart").onclick=startGame;
-}
-function pause(){
- if(!active)return;active=false;stopAlarm();$("screen").style.display="flex";$("box").innerHTML=`<h2>JOGO <span>PAUSADO</span></h2><p>O hotel está à tua espera.</p><button id="resume">CONTINUAR</button>`;
- $("resume").onclick=()=>{$("screen").style.display="none";active=true};
-}
-function update(dt){
- frame++;if(!active)return;
- if(alarmOsc){alarmPhase+=dt;alarmOsc.frequency.value=alarmPhase%32<16?880:660}
- spawnTimer+=dt;groupTimer+=dt;thiefTimer+=dt;blondeTimer+=dt;bellhopTimer+=dt;complaintTimer+=dt;
- if(groupTimer>Math.max(300,550-phase*12)){if(guests.filter(g=>!g.special).length<55)createGroup();groupTimer=0}
- if(thiefTimer>rand(500,850)&&!guests.some(g=>g.special==="thief")){createSpecial("thief");thiefTimer=0;toast("LADRÃO NO HOTEL! 50 EUROS!")}
- if(blondeTimer>rand(650,1000)&&!guests.some(g=>g.special==="blonde")){createSpecial("blonde");blondeTimer=0}
- if(!guests.some(g=>g.special==="bellhop")&&bellhopTimer>550){createSpecial("bellhop");bellhopTimer=0}
- if(complaintTimer>rand(650,950)&&!guests.some(g=>g.special==="complainer")){createSpecial("complainer");complaintTimer=0}
- if(!receptionistVisible){
-  receptionistTimer+=dt;
-  if(receptionistTimer>rand(350,650)){receptionistVisible=true;receptionistMode=Math.random()<.65?"focus":"fogo";receptionistDuration=rand(150,260);receptionistTimer=0;if(receptionistMode==="focus"){startAlarm();toast("FOCO! DISPARA NA RECECIONISTA!")}}
- }else{
-  receptionistDuration-=dt;
-  if(receptionistDuration<=0){receptionistVisible=false;stopAlarm();receptionistTimer=0}
- }
- if(spawnTimer>Math.max(45,110-phase*5)){if(guests.filter(g=>!g.special).length<55)createGuest();spawnTimer=0}
- for(const g of guests){
-  g.walk+=.12*dt;
-  if(g.special==="bellhop"){g.x=W*.69;g.y=H*.52;continue}
-  if(g.special==="blonde"){g.x+=(g.dir||1)*g.speed*dt;if(g.x>W+g.r)g.x=-g.r;continue}
-  if(g.special==="thief"){g.x+=g.speed*dt;continue}
-  if(g.special==="complainer"){g.x-=g.speed*dt;continue}
-  if(g.queue){const dx=g.targetX-g.x;if(Math.abs(dx)>2)g.x+=Math.sign(dx)*Math.min(Math.abs(dx),g.speed*dt);g.y+=(g.targetY-g.y)*.06*dt;continue}
-  g.x-=g.speed*dt;g.y+=Math.sin(frame*.03+g.bob)*.3*dt;
- }
- function drawGuest(g){
- const r=g.r,walk=Math.sin(g.walk)*r*.14,[skin,hair,suit,tie]=g.c;
- ctx.save();ctx.translate(g.x,g.y);
- ctx.strokeStyle="#252a31";ctx.lineWidth=Math.max(4,r*.12);ctx.lineCap="round";ctx.beginPath();
- ctx.moveTo(-r*.22,r*.82);ctx.lineTo(-r*.25+walk,r*1.23);ctx.moveTo(r*.22,r*.82);ctx.lineTo(r*.25-walk,r*1.23);ctx.stroke();
- ctx.fillStyle=g.bagColor;ctx.fillRect(r*.48,r*.35,r*.65,r*.65);ctx.strokeStyle="#e7c58d";ctx.lineWidth=2;ctx.strokeRect(r*.48,r*.35,r*.65,r*.65);
- ctx.strokeStyle=suit;ctx.lineWidth=r*.28;ctx.beginPath();ctx.moveTo(-r*.48,r*.12);ctx.lineTo(-r*.68,r*.62+walk);ctx.moveTo(r*.48,r*.12);ctx.lineTo(r*.68,r*.62-walk);ctx.stroke();
- ctx.fillStyle=suit;ctx.fillRect(-r*.52,0,r*1.04,r*.9);
- ctx.fillStyle="#f4f0e8";ctx.beginPath();ctx.moveTo(-r*.17,0);ctx.lineTo(0,r*.25);ctx.lineTo(r*.17,0);ctx.fill();
- ctx.fillStyle=tie;ctx.beginPath();ctx.moveTo(0,r*.08);ctx.lineTo(-r*.09,r*.21);ctx.lineTo(0,r*.68);ctx.lineTo(r*.09,r*.21);ctx.fill();
- ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-r*.25,r*.48,0,Math.PI*2);ctx.fill();
- ctx.fillStyle=hair;ctx.beginPath();ctx.arc(0,-r*.48,r*.48,Math.PI,Math.PI*2);ctx.fill();
- ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-r*.18,-r*.25,r*.09,0,Math.PI*2);ctx.arc(r*.18,-r*.25,r*.09,0,Math.PI*2);ctx.fill();
- ctx.restore();
-}
-function drawSpecial(g){
- drawGuest({...g,c:["#e9b58c","#17151a",g.special==="thief"?"#161b23":g.special==="bellhop"?"#24558a":"#777d86","#d83d49"],bag:false});
- if(g.special==="thief"){ctx.fillStyle="#ffe0a0";ctx.font="bold 18px Arial";ctx.fillText("50€",g.x,g.y)}
- if(g.special==="blonde")drawSpeech(g.x,g.y-g.r-25,"FOGO! FOGO!");
- if(g.special==="bellhop")drawSpeech(g.x,g.y-g.r-25,"PRECISO DA CHAVE!");
- if(g.special==="complainer")drawSpeech(g.x,g.y-g.r-25,"CHEIRA A ESGOTO!");
-}
-function drawArrow(a){
- ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.angle);ctx.strokeStyle="#e6d2a7";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-23,0);ctx.lineTo(24,0);ctx.stroke();ctx.fillStyle="#ffcf72";ctx.beginPath();ctx.moveTo(24,0);ctx.lineTo(15,-5);ctx.lineTo(15,5);ctx.fill();ctx.restore();
-}
-function splash(x,y,color="#ff7583"){
- for(let i=0;i<28;i++){const a=rand(0,Math.PI*2),s=rand(1.5,7);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:35,max:35,size:rand(3,8),color})}
-}
-function updateParticles(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
-function drawParticles(){for(const p of particles){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
-function updateHUD(){
- const vals=[["FASE",phase],["PONTOS",score],["RECORDE",best],["FLECHAS","➶ "+ammo],["VIDAS","♥ ".repeat(lives)]];
- $("hud").innerHTML=vals.map(v=>`<div class="stat"><label>${v[0]}</label><b>${v[1]}</b></div>`).join("");
- $("phaseLabel").textContent=`FASE ${phase} · ${kills}/${needed}`;$("progressFill").style.width=Math.min(100,kills/needed*100)+"%";
-}
-function toast(m){$("toast").textContent=m;$("toast").style.opacity=1;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").style.opacity=0,2200)}
-function startGame(){
- stopAlarm();score=0;phase=1;lives=5;ammo=65;combo=0;kills=0;needed=7;guests=[];arrows=[];particles=[];
- spawnTimer=groupTimer=thiefTimer=blondeTimer=bellhopTimer=complaintTimer=receptionistTimer=0;
- receptionistVisible=false;receptionistDuration=0;active=true;$("screen").style.display="none";createGroup();createSpecial("bellhop");updateHUD();
-}
-function shoot(){
- if(!active||ammo<=0)return;ammo--;const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
- arrows.push({x:bow.x+Math.cos(a)*45,y:bow.y+Math.sin(a)*45,vx:Math.cos(a)*16,vy:Math.sin(a)*16,angle:a,life:100,hit:new Set()});updateHUD();
-}
-function nextPhase(){if(kills<needed)return;phase++;kills=0;needed=7+phase*2;ammo+=25;lives=Math.min(5,lives+1);updateHUD();toast("FASE "+phase+"! NOVO GRUPO!");createGroup()}
-function gameOver(){
- active=false;stopAlarm();$("screen").style.display="flex";$("box").innerHTML=`<h2>FIM DE <span>JOGO</span></h2><p>PONTOS: <b>${score}</b><br>FASE: <b>${phase}</b><br>RECORDE: <b>${best}</b></p><button id="restart">JOGAR NOVAMENTE</button>`;$("restart").onclick=startGame;
-}
-function pause(){
- if(!active)return;active=false;stopAlarm();$("screen").style.display="flex";$("box").innerHTML=`<h2>JOGO <span>PAUSADO</span></h2><p>O hotel está à tua espera.</p><button id="resume">CONTINUAR</button>`;
- $("resume").onclick=()=>{$("screen").style.display="none";active=true};
-}
 
-  /* A rececionista só é atingida durante o grito FOCO.
-     O alarme para imediatamente e a explosão é desenhada no local. */
-  if(receptionistVisible&&receptionistMode==="focus"){
-   const rx=W*.65,rr=Math.min(54,W*.055),ry=H*.50-rr*.48;
-   if(!a.hit.has("receptionist")&&Math.hypot(a.x-rx,a.y-ry)<rr*1.25){
-    a.hit.add("receptionist");receptionistVisible=false;stopAlarm();splash(rx,ry,"#ffb52e");splash(rx,ry,"#ff5266");shake=13;
-    score+=250;combo++;toast("RECECIONISTA ATINGIDA! EXPLOSÃO! +250");
-    if(score>best){best=score;try{localStorage.setItem("hotelBossRecord",best)}catch(e){}}
-    receptionistTimer=0;updateHUD();
-   }
-  }
-  for(let i=guests.length-1;i>=0;i--){
-   const g=guests[i];if(a.hit.has(g.id))continue;
-   if(Math.hypot(a.x-g.x,a.y-g.y)<g.r*.8){
-    a.hit.add(g.id);g.hp--;splash(g.x,g.y);shake=5;
-    if(g.hp<=0){
-     guests.splice(i,1);
-     if(g.special==="bellhop"){score+=150;combo++;toast("BAGAGEIRO ATINGIDO!")}
-     else{
-      const points=100+combo*20+(g.special?75:0);score+=points;combo++;
-      if(g.special==="thief"){toast("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");score+=200}
-      else if(g.special==="blonde")toast("A MULHER DO FOGO FOI ATINGIDA!");
-      else if(g.special==="complainer")toast("RECLAMAÇÃO RESOLVIDA!");
-      else toast("CLIENTE RESOLVIDO! +"+points);
-      if(!g.special){kills++;nextPhase()}
-     }
-     if(score>best){best=score;try{localStorage.setItem("hotelBossRecord",best)}catch(e){}}
-     updateHUD();
-    }else toast("ACERTA OUTRA VEZ!");
-    break;
-   }
-  }
- }
- arrows=arrows.filter(a=>a.life>0&&a.x<W+80&&a.x>-80&&a.y<H+80&&a.y>-80);
- if(ammo<=0&&arrows.length===0){gameOver();return}
+ if(ammo<=0&&arrows.length===0){gameOver();return;}
  updateParticles(dt);
 }
+
 function draw(){
- ctx.save();if(shake>0){ctx.translate(rand(-shake,shake),rand(-shake,shake));shake*=.8;if(shake<.2)shake=0}
+ ctx.save();
+
+ if(shake>0){
+  ctx.translate(rand(-shake,shake),rand(-shake,shake));
+  shake*=.8;
+  if(shake<.2)shake=0;
+ }
+
  background();
- guests.forEach(g=>g.special?drawSpecial(g):drawGuest(g));
- drawReceptionist();arrows.forEach(drawArrow);drawParticles();
- const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);ctx.save();ctx.translate(bow.x,bow.y);ctx.rotate(a);ctx.strokeStyle="#d9a15c";ctx.lineWidth=7;ctx.beginPath();ctx.arc(0,0,34,-1.1,1.1);ctx.stroke();ctx.restore();
- ctx.strokeStyle="#ff6375";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(mouse.x,mouse.y,13,0,Math.PI*2);ctx.stroke();
- if(combo>1&&active){ctx.textAlign="center";ctx.fillStyle="#ffdf86";ctx.font="bold 23px Arial";ctx.fillText("COMBO x"+combo,W/2,H*.26)}
+
+ /* Os hóspedes são desenhados antes do estagiário,
+    para o balcão e o rececionista ficarem à frente deles. */
+ guests.forEach(g=>{
+  if(g.special)drawSpecial(g);
+  else drawGuest(g);
+ });
+
+ /* Estagiário desenhado por cima dos hóspedes */
+ drawReceptionist();
+
+ arrows.forEach(drawArrow);
+ drawParticles();
+
+ const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
+ ctx.save();
+ ctx.translate(bow.x,bow.y);
+ ctx.rotate(a);
+ ctx.strokeStyle="#d9a15c";
+ ctx.lineWidth=7;
+ ctx.beginPath();ctx.arc(0,0,34,-1.1,1.1);ctx.stroke();
+ ctx.restore();
+
+ ctx.strokeStyle="#ff6375";
+ ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.arc(mouse.x,mouse.y,13,0,Math.PI*2);ctx.stroke();
+
+ if(combo>1&&active){
+  ctx.textAlign="center";
+  ctx.fillStyle="#ffdf86";
+  ctx.font="bold 23px Arial";
+  ctx.fillText("COMBO x"+combo,W/2,H*.26);
+ }
+
  ctx.restore();
 }
-function loop(time){const dt=Math.min((time-last)/16.67||1,2);last=time;update(dt);draw();requestAnimationFrame(loop)}
-$("loginForm").addEventListener("submit",e=>{
- e.preventDefault();if($("loginPassword").value==="Frameloop"){$("loginScreen").style.display="none";$("loginPassword").value=""}
- else{$("loginError").textContent="Palavra-passe incorreta!";$("loginPassword").value=""}
+
+function loop(time){
+ const dt=Math.min((time-last)/16.67||1,2);
+ last=time;update(dt);draw();
+ requestAnimationFrame(loop);
+}
+
+/* Login */
+$("loginForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ const password=$("loginPassword").value;
+
+ if(password==="Frameloop"){
+  $("loginScreen").style.display="none";
+  $("loginPassword").value="";
+ }else{
+  $("loginError").textContent="Palavra-passe incorreta!";
+  $("loginPassword").value="";
+ }
 });
-canvas.addEventListener("pointermove",e=>{const r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
-canvas.addEventListener("pointerdown",e=>{const r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;if(active)shoot()});
-$("mobileShoot").addEventListener("pointerdown",e=>{e.preventDefault();shoot()});
-$("start").onclick=startGame;$("exit").onclick=pause;
-addEventListener("keydown",e=>{if(e.key==="Escape")pause();if(e.code==="Space"){e.preventDefault();shoot()}});
-updateHUD();last=performance.now();requestAnimationFrame(loop);
+
+/* Controlos */
+canvas.addEventListener("pointermove",e=>{
+ const r=canvas.getBoundingClientRect();
+ mouse.x=e.clientX-r.left;
+ mouse.y=e.clientY-r.top;
+});
+
+canvas.addEventListener("pointerdown",e=>{
+ const r=canvas.getBoundingClientRect();
+ mouse.x=e.clientX-r.left;
+ mouse.y=e.clientY-r.top;
+ if(active)shoot();
+});
+
+$("mobileShoot").addEventListener("pointerdown",e=>{
+ e.preventDefault();shoot();
+});
+
+$("start").onclick=startGame;
+$("exit").onclick=pause;
+
+addEventListener("keydown",e=>{
+ if(e.key==="Escape")pause();
+ if(e.code==="Space"){e.preventDefault();shoot();}
+});
+
+updateHUD();
+last=performance.now();
+requestAnimationFrame(loop);
+
 })();
 </script>
 </body>
