@@ -357,7 +357,7 @@ $("mobileShoot").addEventListener("pointerdown",e=>{e.preventDefault();shoot()})
 $("start").onclick=startGame;$("exit").onclick=pause;
 addEventListener("keydown",e=>{if(e.key==="Escape")pause();if(e.code==="Space"){e.preventDefault();shoot()}});
 updateHUD();last=performance.now();requestAnimationFrame(loop);
-})();
+}();
 </script>
 </body>
 </html>
