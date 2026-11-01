@@ -133,34 +133,92 @@ function drawSpeech(x,y,message,color="#fff3d6"){
  ctx.fillStyle="#38251c";ctx.textAlign="center";ctx.font="bold 13px Arial";ctx.fillText(message,bx,y);ctx.restore();
 }
 
-function drawGuest(g){
- const r=g.r,walk=Math.sin(g.walk)*r*.14,[skin,hair,suit,tie]=g.c;
- ctx.save();ctx.translate(g.x,g.y);
- ctx.strokeStyle="#252a31";ctx.lineWidth=Math.max(4,r*.12);ctx.lineCap="round";ctx.beginPath();
- ctx.moveTo(-r*.22,r*.82);ctx.lineTo(-r*.25+walk,r*1.23);ctx.moveTo(r*.22,r*.82);ctx.lineTo(r*.25-walk,r*1.23);ctx.stroke();
- ctx.fillStyle=g.bagColor;ctx.fillRect(r*.48,r*.35,r*.65,r*.65);ctx.strokeStyle="#e7c58d";ctx.lineWidth=2;ctx.strokeRect(r*.48,r*.35,r*.65,r*.65);
- ctx.strokeStyle=suit;ctx.lineWidth=r*.28;ctx.beginPath();ctx.moveTo(-r*.48,r*.12);ctx.lineTo(-r*.68,r*.62+walk);ctx.moveTo(r*.48,r*.12);ctx.lineTo(r*.68,r*.62-walk);ctx.stroke();
- ctx.fillStyle=suit;ctx.fillRect(-r*.52,0,r*1.04,r*.9);
- ctx.fillStyle="#f4f0e8";ctx.beginPath();ctx.moveTo(-r*.17,0);ctx.lineTo(0,r*.25);ctx.lineTo(r*.17,0);ctx.fill();
- ctx.fillStyle=tie;ctx.beginPath();ctx.moveTo(0,r*.08);ctx.lineTo(-r*.09,r*.21);ctx.lineTo(0,r*.68);ctx.lineTo(r*.09,r*.21);ctx.fill();
- ctx.fillStyle=skin;ctx.beginPath();ctx.arc(0,-r*.25,r*.48,0,Math.PI*2);ctx.fill();
- ctx.fillStyle=hair;ctx.beginPath();ctx.arc(0,-r*.48,r*.48,Math.PI,Math.PI*2);ctx.fill();
- ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(-r*.18,-r*.25,r*.09,0,Math.PI*2);ctx.arc(r*.18,-r*.25,r*.09,0,Math.PI*2);ctx.fill();
- ctx.restore();
-}
-function drawSpecial(g){
- drawGuest({...g,c:["#e9b58c","#17151a",g.special==="thief"?"#161b23":g.special==="bellhop"?"#24558a":"#777d86","#d83d49"],bag:false});
- if(g.special==="thief"){ctx.fillStyle="#ffe0a0";ctx.font="bold 18px Arial";ctx.fillText("50€",g.x,g.y)}
- if(g.special==="blonde")drawSpeech(g.x,g.y-g.r-25,"FOGO! FOGO!");
- if(g.special==="bellhop")drawSpeech(g.x,g.y-g.r-25,"PRECISO DA CHAVE!");
- if(g.special==="complainer")drawSpeech(g.x,g.y-g.r-25,"CHEIRA A ESGOTO!");
-}
-function drawArrow(a){
- ctx.save();ctx.translate(a.x,a.y);ctx.rotate(a.angle);ctx.strokeStyle="#e6d2a7";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(-23,0);ctx.lineTo(24,0);ctx.stroke();ctx.fillStyle="#ffcf72";ctx.beginPath();ctx.moveTo(24,0);ctx.lineTo(15,-5);ctx.lineTo(15,5);ctx.fill();ctx.restore();
-}
-function splash(x,y,color="#ff7583"){
- for(let i=0;i<28;i++){const a=rand(0,Math.PI*2),s=rand(1.5,7);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:35,max:35,size:rand(3,8),color})}
-}
+ for(const a of arrows){
+  a.x+=a.vx*dt;
+  a.y+=a.vy*dt;
+  a.life-=dt;
+
+  /* A rececionista só é atingida durante o grito FOCO. */
+  if(receptionistVisible&&receptionistMode==="focus"){
+   const rx=W*.65,rr=Math.min(54,W*.055),ry=H*.50-rr*.48;
+   if(!a.hit.has("receptionist")&&Math.hypot(a.x-rx,a.y-ry)<rr*1.25){
+    a.hit.add("receptionist");
+    receptionistVisible=false;
+    stopAlarm();
+    splash(rx,ry,"#ffb52e");
+    splash(rx,ry,"#ff5266");
+    shake=13;
+    score+=250;
+    combo++;
+    toast("RECECIONISTA ATINGIDA! EXPLOSÃO! +250");
+    if(score>best){
+     best=score;
+     try{localStorage.setItem("hotelBossRecord",best)}catch(e){}
+    }
+    receptionistTimer=0;
+    updateHUD();
+   }
+  }
+
+  for(let i=guests.length-1;i>=0;i--){
+   const g=guests[i];
+   if(a.hit.has(g.id))continue;
+
+   if(Math.hypot(a.x-g.x,a.y-g.y)<g.r*.8){
+    a.hit.add(g.id);
+    g.hp--;
+    splash(g.x,g.y);
+    shake=5;
+
+    if(g.hp<=0){
+     guests.splice(i,1);
+
+     if(g.special==="bellhop"){
+      score+=150;
+      combo++;
+      toast("BAGAGEIRO ATINGIDO!");
+     }else{
+      const points=100+combo*20+(g.special?75:0);
+      score+=points;
+      combo++;
+
+      if(g.special==="thief"){
+       toast("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");
+       score+=200;
+      }else if(g.special==="blonde"){
+       toast("A MULHER DO FOGO FOI ATINGIDA!");
+      }else if(g.special==="complainer"){
+       toast("RECLAMAÇÃO RESOLVIDA!");
+      }else{
+       toast("CLIENTE RESOLVIDO! +"+points);
+      }
+
+      if(!g.special){
+       kills++;
+       nextPhase();
+      }
+     }
+
+     if(score>best){
+      best=score;
+      try{localStorage.setItem("hotelBossRecord",best)}catch(e){}
+     }
+     updateHUD();
+    }else{
+     toast("ACERTA OUTRA VEZ!");
+    }
+    break;
+   }
+  }
+ }
+
+ arrows=arrows.filter(a=>
+  a.life>0&&a.x<W+80&&a.x>-80&&a.y<H+80&&a.y>-80
+ );
+ if(ammo<=0&&arrows.length===0){
+  gameOver();
+  return;
+ }
 function updateParticles(dt){for(const p of particles){p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt}particles=particles.filter(p=>p.life>0)}
 function drawParticles(){for(const p of particles){ctx.globalAlpha=p.life/p.max;ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1}
 function updateHUD(){
