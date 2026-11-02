@@ -2,65 +2,57 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-
-<meta name="theme-color" content="#091426">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#091629">
 <title>HOTEL HUNTER</title>
 
 <style>
-:root {
- --red:#fa526d;
- --pink:#ff8b9d;
- --gold:#f3c879;
+:root{
+ --red:#f04463;
+ --pink:#ff8499;
+ --gold:#f2c779;
  --navy:#091629;
- --panel:rgba(7,20,38,.94);
- --border:rgba(218,232,248,.45);
+ --panel:rgba(7,20,39,.94);
 }
 
-* {
+*{
  margin:0;
  padding:0;
  box-sizing:border-box;
- -webkit-tap-highlight-color:transparent;
 }
 
-html,body {
+html,body{
  width:100%;
  height:100%;
  overflow:hidden;
- background:#091426;
+ background:#071426;
  color:white;
  font-family:Arial,Helvetica,sans-serif;
  overscroll-behavior:none;
 }
 
-body {
+body{
  position:fixed;
  inset:0;
 }
 
-button {
+button{
  font-family:inherit;
  cursor:pointer;
+ -webkit-tap-highlight-color:transparent;
  touch-action:manipulation;
 }
 
-#game {
- position:fixed;
+#game{
+ position:absolute;
  inset:0;
  width:100%;
  height:100%;
  overflow:hidden;
- isolation:isolate;
- background:#21150f;
+ background:#17283b;
 }
 
-#canvas {
+#canvas{
  position:absolute;
  inset:0;
  width:100%;
@@ -71,386 +63,335 @@ button {
 
 /* CABEÇALHO */
 
-#header {
+#header{
  position:absolute;
- z-index:10;
- top:calc(env(safe-area-inset-top) + 9px);
- left:12px;
- right:12px;
+ top:env(safe-area-inset-top,8px);
+ left:10px;
+ right:10px;
+ z-index:5;
  pointer-events:none;
 }
 
-#logo {
- text-shadow:0 2px 7px #000;
+#logo{
+ display:inline-block;
+ text-shadow:0 2px 8px #000;
 }
 
-#logo small {
+#logo small{
  display:block;
- color:#ff8b9d;
- font-size:clamp(9px,2.4vw,13px);
+ color:#ff8799;
+ font-size:10px;
  font-weight:bold;
  letter-spacing:3px;
  margin-bottom:3px;
 }
 
-#logo h1 {
- font-size:clamp(23px,6vw,37px);
+#logo h1{
+ font-size:clamp(21px,5vw,34px);
+ font-weight:900;
  letter-spacing:1px;
 }
 
-#logo h1 span {
+#logo span{
  color:var(--red);
 }
 
-#exit {
+#exit{
  position:absolute;
- right:0;
  top:0;
+ right:0;
  pointer-events:auto;
- background:#0a1a30;
- border:1px solid #8fa4bf;
- border-radius:13px;
- padding:11px 15px;
+ background:#10233b;
+ border:1px solid #8097b2;
  color:white;
- font-size:14px;
+ border-radius:12px;
+ padding:11px 16px;
  font-weight:bold;
- box-shadow:0 4px 15px #0008;
+ font-size:13px;
+ box-shadow:0 4px 15px #0007;
 }
 
-/* PAINÉIS */
+/* ESTATÍSTICAS */
 
-#hud {
+#hud{
  position:absolute;
- z-index:10;
- top:calc(env(safe-area-inset-top) + 77px);
+ top:75px;
  left:8px;
  right:8px;
  display:flex;
  justify-content:center;
- gap:5px;
- flex-wrap:nowrap;
+ gap:6px;
+ z-index:5;
+ pointer-events:none;
 }
 
-.stat {
- min-width:0;
+.stat{
  flex:1;
- max-width:115px;
+ min-width:0;
+ max-width:120px;
  padding:9px 7px;
- border-radius:13px;
- background:linear-gradient(145deg,#142c48,#071426);
- border:1px solid var(--border);
- box-shadow:0 4px 12px #0007;
- backdrop-filter:blur(8px);
+ border-radius:12px;
+ background:linear-gradient(145deg,#172c47,#071426);
+ border:1px solid #62758c;
+ box-shadow:0 4px 15px #0008;
 }
 
-.stat label {
+.stat label{
  display:block;
- color:#ff8b9d;
+ font-size:clamp(8px,2vw,11px);
  font-weight:bold;
- font-size:clamp(8px,2.2vw,12px);
+ color:#ff91a2;
  letter-spacing:1px;
- margin-bottom:7px;
- white-space:nowrap;
+ margin-bottom:6px;
 }
 
-.stat b {
- font-size:clamp(11px,3.2vw,19px);
+.stat b{
+ font-size:clamp(12px,3vw,19px);
  white-space:nowrap;
 }
 
 /* PROGRESSO */
 
-#progress {
+#progress{
  position:absolute;
- z-index:10;
- top:calc(env(safe-area-inset-top) + 154px);
+ top:145px;
  left:50%;
  transform:translateX(-50%);
- width:min(78%,410px);
+ width:min(80%,410px);
+ z-index:5;
  text-align:center;
- font-size:clamp(12px,3.3vw,19px);
+ font-size:13px;
  font-weight:bold;
- letter-spacing:1px;
  text-shadow:0 2px 5px black;
+ pointer-events:none;
 }
 
-#progressBar {
+#bar{
+ width:100%;
  height:11px;
  background:#071426;
- border:1px solid #9bacc1;
+ border:1px solid #a6b7cc;
  border-radius:20px;
- margin-top:9px;
  overflow:hidden;
+ margin-top:7px;
 }
 
-#progressFill {
- width:0;
+#fill{
+ width:0%;
  height:100%;
- background:linear-gradient(90deg,#e63859,#ffbd65);
- border-radius:20px;
+ background:linear-gradient(90deg,#e43d5b,#ffc66d);
  transition:width .2s;
 }
 
-/* MENSAGENS */
+/* BALÕES */
 
-#toast {
+#speech{
  position:absolute;
- z-index:20;
- top:calc(env(safe-area-inset-top) + 205px);
+ top:185px;
  left:50%;
  transform:translateX(-50%);
- width:min(90%,430px);
- padding:15px;
- border-radius:18px;
- border:1px solid #ff899a;
- background:rgba(74,24,41,.95);
- color:white;
- font-size:clamp(13px,3.5vw,19px);
- font-weight:bold;
+ width:min(88%,420px);
+ padding:13px 16px;
+ background:rgba(65,19,37,.94);
+ border:1px solid #ff8298;
+ border-radius:15px;
  text-align:center;
- box-shadow:0 7px 25px #0008;
+ font-weight:bold;
+ font-size:clamp(12px,3.2vw,18px);
+ line-height:1.35;
+ z-index:6;
+ box-shadow:0 5px 20px #0008;
  opacity:0;
- transition:opacity .25s;
+ transition:opacity .2s;
  pointer-events:none;
+}
+
+#speech.show{
+ opacity:1;
 }
 
 /* INSTRUÇÕES */
 
-#help {
+#help{
  position:absolute;
- z-index:10;
- bottom:calc(env(safe-area-inset-bottom) + 10px);
  left:50%;
+ bottom:calc(12px + env(safe-area-inset-bottom,0px));
  transform:translateX(-50%);
- width:min(90%,420px);
- padding:12px;
- border-radius:14px;
- background:rgba(4,15,29,.91);
- border:1px solid #ffffff45;
+ width:min(92%,440px);
+ background:rgba(5,16,31,.91);
+ border:1px solid #71839b;
+ border-radius:12px;
+ padding:11px;
  text-align:center;
- font-size:clamp(10px,2.6vw,14px);
+ font-size:11px;
  line-height:1.5;
- box-shadow:0 4px 14px #0008;
+ z-index:5;
  pointer-events:none;
 }
 
-/* BOTÕES DO TELEMÓVEL */
+/* BOTÃO DE DISPARO */
 
-#mobileControls {
+#shoot{
  position:absolute;
- z-index:12;
- bottom:calc(env(safe-area-inset-bottom) + 75px);
- right:18px;
- display:flex;
- align-items:center;
- gap:12px;
-}
-
-.control {
- width:70px;
- height:70px;
+ right:20px;
+ bottom:95px;
+ width:76px;
+ height:76px;
  border-radius:50%;
- border:2px solid #ffb3bd;
- background:linear-gradient(145deg,#ee5571,#92203e);
+ background:linear-gradient(145deg,#f34c6b,#a21e3d);
+ border:3px solid #ffc0c8;
  color:white;
- font-size:28px;
- box-shadow:0 5px 18px #0009;
+ font-size:32px;
+ font-weight:bold;
+ box-shadow:0 6px 22px #0009;
+ z-index:8;
+ display:none;
 }
 
-.control:active {
- transform:scale(.91);
+#shoot:active{
+ transform:scale(.92);
 }
 
-#pauseButton {
- width:52px;
- height:52px;
- font-size:19px;
- background:linear-gradient(145deg,#263d58,#091426);
- border-color:#8ba2bd;
-}
+/* ECRÃS */
 
-/* MENU */
-
-#screen {
+.overlay{
  position:absolute;
- z-index:100;
  inset:0;
+ z-index:20;
  display:flex;
  align-items:center;
  justify-content:center;
  padding:20px;
- padding-top:calc(env(safe-area-inset-top) + 20px);
- padding-bottom:calc(env(safe-area-inset-bottom) + 20px);
- background:rgba(2,9,19,.77);
- backdrop-filter:blur(6px);
+ background:rgba(3,10,22,.83);
+ backdrop-filter:blur(7px);
 }
 
-#box {
- width:100%;
- max-width:480px;
- max-height:90%;
- overflow-y:auto;
- padding:30px 22px;
- border-radius:22px;
+.card{
+ width:min(100%,440px);
+ background:linear-gradient(145deg,#193553,#081426);
+ border:1px solid #758ba5;
+ border-radius:20px;
+ padding:30px 23px;
  text-align:center;
- background:linear-gradient(145deg,#193654,#071426);
- border:1px solid #8ca1bd;
- box-shadow:0 20px 70px #000b;
+ box-shadow:0 20px 70px #000c;
 }
 
-#box h2 {
+.card h2{
  font-size:clamp(29px,8vw,43px);
  margin-bottom:15px;
 }
 
-#box h2 span {
+.card h2 span{
  color:var(--red);
 }
 
-#box p {
- color:#dce7f4;
+.card p{
+ color:#d4e0ee;
+ line-height:1.7;
  font-size:14px;
- line-height:1.8;
- margin-bottom:22px;
+ margin-bottom:23px;
 }
 
-.mainButton {
+.mainButton{
+ display:block;
  width:100%;
  padding:16px;
+ border:1px solid #ff9eae;
  border-radius:12px;
- border:1px solid #ffacb8;
+ background:linear-gradient(135deg,#ed4967,#9d203e);
  color:white;
- background:linear-gradient(135deg,#e64a67,#91213b);
- font-weight:bold;
+ font-weight:900;
  font-size:15px;
- box-shadow:0 5px 17px #0006;
+ box-shadow:0 5px 20px #0008;
 }
 
-.mainButton:active {
+.mainButton:active{
  transform:scale(.97);
 }
 
 /* LOGIN */
 
-#loginScreen {
- position:absolute;
- inset:0;
- z-index:1000;
- display:none;
- align-items:center;
- justify-content:center;
- padding:20px;
- background:radial-gradient(circle,#193654,#050e1b);
+#login{
+ z-index:100;
+ background:radial-gradient(circle,#203c5c,#050e1c 80%);
 }
 
-.loginCard {
+#password{
  width:100%;
- max-width:370px;
- padding:30px;
- border-radius:20px;
- background:linear-gradient(145deg,#193654,#071426);
- border:1px solid #8ca1bd;
- text-align:center;
-}
-
-.loginCard h2 {
- font-size:29px;
- margin-bottom:25px;
-}
-
-.loginCard h2 span {
- color:var(--red);
-}
-
-#password {
- width:100%;
- padding:15px;
+ padding:16px;
  margin-bottom:14px;
- border-radius:10px;
- border:1px solid #627c9b;
- background:#071426;
+ background:#061426;
  color:white;
+ border:1px solid #71839b;
+ border-radius:11px;
  font-size:16px;
+ text-align:center;
+ outline:none;
 }
 
-#loginError {
- color:#ff8295;
+#password:focus{
+ border-color:#ff758d;
+}
+
+#error{
+ color:#ff8197;
  font-size:13px;
- margin-top:12px;
+ margin-top:13px;
+ min-height:18px;
 }
 
-/* MODO PAISAGEM */
+/* ESCONDER */
 
-@media (orientation:landscape) and (max-height:550px) {
- #header {
-  top:5px;
- }
-
- #logo h1 {
-  font-size:22px;
- }
-
- #hud {
-  top:60px;
-  left:12px;
-  right:12px;
-  justify-content:flex-start;
-  max-width:550px;
- }
-
- .stat {
-  padding:5px 7px;
- }
-
- #progress {
-  top:115px;
-  width:180px;
- }
-
- #toast {
-  top:155px;
- }
-
- #help {
-  bottom:5px;
-  width:auto;
-  max-width:55%;
- }
-
- #mobileControls {
-  bottom:55px;
- }
-
- .control {
-  width:58px;
-  height:58px;
- }
+.hidden{
+ display:none!important;
 }
 
-/* ECRÃS MUITO PEQUENOS */
+/* ECRÃS PEQUENOS */
 
-@media(max-width:360px) {
- #hud {
-  gap:3px;
+@media(max-width:500px){
+
+ #header{
+  top:calc(env(safe-area-inset-top,0px) + 9px);
  }
 
- .stat {
-  padding:7px 4px;
+ #hud{
+  top:69px;
+  gap:4px;
  }
 
- #logo h1 {
-  font-size:21px;
+ .stat{
+  padding:8px 4px;
+  border-radius:9px;
  }
 
- #exit {
-  padding:8px 10px;
-  font-size:11px;
+ #progress{
+  top:137px;
  }
 
- .control {
-  width:59px;
-  height:59px;
+ #speech{
+  top:174px;
  }
+
+ #help{
+  font-size:10px;
+  bottom:calc(8px + env(safe-area-inset-bottom,0px));
+ }
+
+ #shoot{
+  display:block;
+  bottom:95px;
+ }
+
+}
+
+@media(max-height:650px){
+
+ #hud{top:62px}
+ #progress{top:124px}
+ #speech{top:158px}
+ #shoot{bottom:65px;width:65px;height:65px}
+ #help{padding:7px;font-size:9px}
+
 }
 </style>
 </head>
@@ -461,58 +402,128 @@ button {
 
 <canvas id="canvas"></canvas>
 
-<header id="header">
+<div id="header">
  <div id="logo">
   <small>O HOTEL ESTÁ EM PERIGO</small>
   <h1>HOTEL <span>HUNTER</span></h1>
  </div>
-
  <button id="exit">✕ SAIR</button>
-</header>
+</div>
 
-<div id="hud"></div>
+<div id="hud">
+ <div class="stat">
+  <label>FASE</label>
+  <b id="level">1</b>
+ </div>
+ <div class="stat">
+  <label>PONTOS</label>
+  <b id="points">0</b>
+ </div>
+ <div class="stat">
+  <label>RECORDE</label>
+  <b id="record">0</b>
+ </div>
+ <div class="stat">
+  <label>FLECHAS</label>
+  <b id="ammo">65</b>
+ </div>
+ <div class="stat">
+  <label>VIDAS</label>
+  <b id="lives">♥ ♥ ♥ ♥ ♥</b>
+ </div>
+</div>
 
 <div id="progress">
- <div id="phaseLabel">FASE 1 · 0/7</div>
- <div id="progressBar">
-  <div id="progressFill"></div>
- </div>
+ <div id="phaseText">FASE 1 · 0/7</div>
+ <div id="bar"><div id="fill"></div></div>
 </div>
 
-<div id="toast"></div>
+<div id="speech"></div>
 
-<div id="mobileControls">
- <button class="control" id="pauseButton">Ⅱ</button>
- <button class="control" id="shootButton">➤</button>
-</div>
+<button id="shoot">➤</button>
 
 <div id="help">
- MIRA PARA APONTAR · TOCA PARA DISPARAR<br>
- ESPAÇO PARA ATIRAR · ESC PARA PAUSAR
+ MIRA COM O DEDO · TOCA PARA DISPARAR<br>
+ COMPUTADOR: RATO PARA MIRAR · CLIQUE OU ESPAÇO PARA DISPARAR · ESC PARA PAUSAR
 </div>
 
-<div id="screen">
- <div id="box">
+<!-- LOGIN -->
+
+<div id="login" class="overlay">
+ <div class="card">
   <h2>HOTEL <span>HUNTER</span></h2>
   <p>
-   O hotel está em perigo!<br><br>
-   Os clientes estão a chegar à receção.<br>
-   Protege o hotel, resolve as situações e impede o ladrão de fugir!<br><br>
-   Acerta nos alvos e avança pelas fases.
+   BEM-VINDO AO HOTEL!<br>
+   Introduz a palavra-passe para entrar.
   </p>
-  <button class="mainButton" id="start">COMEÇAR JOGO</button>
+
+  <form id="loginForm">
+   <input id="password" type="password"
+    placeholder="Palavra-passe"
+    autocomplete="current-password"
+    required>
+
+   <button class="mainButton" type="submit">
+    ENTRAR
+   </button>
+  </form>
+
+  <div id="error"></div>
  </div>
 </div>
 
-<div id="loginScreen">
- <div class="loginCard">
+<!-- MENU -->
+
+<div id="menu" class="overlay hidden">
+ <div class="card">
   <h2>HOTEL <span>HUNTER</span></h2>
-  <form id="loginForm">
-   <input id="password" type="password"
-    placeholder="Palavra-passe" required>
-   <button class="mainButton" type="submit">ENTRAR</button>
-   <p id="loginError"></p>
-  </form>
+
+  <p>
+   A RECEÇÃO ESTÁ EM PERIGO!<br><br>
+   Os hóspedes estão a chegar.<br>
+   Resolve as reclamações e protege o hotel.<br>
+   Apanha o ladrão dos 50 euros!
+  </p>
+
+  <button class="mainButton" id="start">
+   ▶ COMEÇAR JOGO
+  </button>
+ </div>
+</div>
+
+<!-- PAUSA -->
+
+<div id="pause" class="overlay hidden">
+ <div class="card">
+  <h2>JOGO <span>PAUSADO</span></h2>
+  <p>O hotel está à tua espera!</p>
+  <button class="mainButton" id="resume">
+   CONTINUAR JOGO
+  </button>
+  <br>
+  <button class="mainButton" id="restart">
+   RECOMEÇAR
+  </button>
+  <br>
+  <button class="mainButton" id="backMenu">
+   MENU PRINCIPAL
+  </button>
+ </div>
+</div>
+
+<!-- FIM -->
+
+<div id="gameover" class="overlay hidden">
+ <div class="card">
+  <h2>FIM DE <span>JOGO</span></h2>
+  <p id="finalText"></p>
+  <button class="mainButton" id="again">
+   JOGAR NOVAMENTE
+  </button>
+  <br>
+  <button class="mainButton" id="home">
+   MENU PRINCIPAL
+  </button>
  </div>
 </div>
 
@@ -522,8 +533,7 @@ button {
 "use strict";
 
 /* =====================================
-   HOTEL HUNTER
-   VERSÃO RESPONSIVA ANDROID E IOS
+   HOTEL HUNTER - MOTOR DO JOGO
 ===================================== */
 
 const $ = id => document.getElementById(id);
@@ -532,130 +542,53 @@ const canvas = $("canvas");
 const ctx = canvas.getContext("2d");
 
 let W=0,H=0,D=1;
-let active=false;
+
+let playing=false;
 let paused=false;
-let last=0;
 
 let phase=1;
 let score=0;
-let best=0;
+let record=0;
 let lives=5;
 let ammo=65;
-let combo=0;
 let kills=0;
 let needed=7;
+let combo=0;
 
 let guests=[];
 let arrows=[];
 let particles=[];
-let texts=[];
+let floatingTexts=[];
 
-let spawnTimer=0;
-let groupTimer=0;
-let thiefTimer=0;
-let fireTimer=0;
-let complaintTimer=0;
-let bellhopTimer=0;
+let lastTime=0;
+let spawnClock=0;
+let groupClock=0;
+let thiefClock=0;
+let fireClock=0;
+let complaintClock=0;
 
-let frame=0;
-let shake=0;
-let messageTimer=null;
+let speechClock=null;
 
-const pointer={
- x:0,
- y:0,
- down:false
+const aim={x:0,y:0};
+
+const photo=new Image();
+let photoReady=false;
+
+photo.onload=()=>{
+ photoReady=true;
 };
 
-const bow={
- x:0,
- y:0
+photo.onerror=()=>{
+ console.warn("Fotografia recepcao-jogo.jpg não encontrada.");
 };
 
-const rand=(a,b)=>a+Math.random()*(b-a);
+photo.src="recepcao-jogo.jpg";
 
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-
-/* FOTOGRAFIA DA RECEÇÃO */
-
-const reception=new Image();
-
-let receptionReady=false;
-
-reception.onload=()=>{
- receptionReady=true;
-};
-
-reception.onerror=()=>{
- console.warn("Coloca recepcao-jogo.jpg na raiz do projeto.");
-};
-
-reception.src="recepcao-jogo.jpg";
-
-/* RECORDES */
-
-try {
- best=Number(localStorage.getItem("hotelHunterRecord")||0);
-} catch(e) {}
-
-/* PERSONAGENS */
-
-const skins=[
- {
-  skin:"#e9b58c",
-  hair:"#211b24",
-  suit:"#244e78",
-  tie:"#e64e57"
- },
- {
-  skin:"#bd805e",
-  hair:"#171a23",
-  suit:"#424b5c",
-  tie:"#e8bd46"
- },
- {
-  skin:"#f2c99d",
-  hair:"#b8a078",
-  suit:"#3d6b57",
-  tie:"#56b6d5"
- },
- {
-  skin:"#d99c79",
-  hair:"#33251e",
-  suit:"#61416c",
-  tie:"#d75e63"
- },
- {
-  skin:"#e9c09a",
-  hair:"#49362d",
-  suit:"#6b4242",
-  tie:"#e6b64c"
- }
-];
-
-const normalMessages=[
- "O MEU QUARTO AINDA NÃO ESTÁ PRONTO!",
- "QUERO FALAR COM O GERENTE!",
- "O AR CONDICIONADO NÃO FUNCIONA!",
- "A MINHA RESERVA DESAPARECEU!",
- "QUERO UM QUARTO MAIS ALTO!",
- "A MÁQUINA DE CAFÉ ESTÁ AVARIADA!",
- "NÃO GOSTEI DO ATENDIMENTO!",
- "ESTOU À ESPERA HÁ MUITO TEMPO!",
- "ONDE ESTÁ A MINHA MALA?",
- "PRECISO DE UMA SOLUÇÃO AGORA!"
-];
-
-const reactions=[
- "AI!",
- "EI!",
- "OH NÃO!",
- "SOCORRO!",
- "QUE SUSTO!",
- "BASTA!"
-];
-
-/* REDIMENSIONAMENTO */
+try{
+ record=Number(localStorage.getItem("hotelHunterRecord"))||0;
+}catch(e){
+ record=0;
+}
 
 function resize(){
 
@@ -667,222 +600,218 @@ function resize(){
  canvas.width=Math.round(W*D);
  canvas.height=Math.round(H*D);
 
- canvas.style.width=W+"px";
- canvas.style.height=H+"px";
-
  ctx.setTransform(D,0,0,D,0,0);
 
- bow.x=W*.12;
- bow.y=H*.72;
-
- pointer.x=W*.65;
- pointer.y=H*.55;
+ aim.x=W*.7;
+ aim.y=H*.65;
 }
 
 window.addEventListener("resize",resize);
-window.addEventListener("orientationchange",()=>{
- setTimeout(resize,150);
-});
-
 resize();
 
-/* FUNDO: IMAGEM INTEIRA + PREENCHIMENTO DESFOCADO */
+/* =====================================
+   FOTOGRAFIA SEM CORTES
+===================================== */
 
 function drawBackground(){
 
- ctx.fillStyle="#3a2418";
+ ctx.fillStyle="#39251b";
  ctx.fillRect(0,0,W,H);
 
- if(!receptionReady)return;
+ if(!photoReady){
 
- const iw=reception.naturalWidth;
- const ih=reception.naturalHeight;
+  const gradient=ctx.createLinearGradient(0,0,W,H);
+
+  gradient.addColorStop(0,"#68412b");
+  gradient.addColorStop(.5,"#9a6540");
+  gradient.addColorStop(1,"#281a16");
+
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,W,H);
+
+  return;
+ }
+
+ const iw=photo.naturalWidth;
+ const ih=photo.naturalHeight;
+
+ /*
+  A fotografia é desenhada inteira.
+  Não é cortada em telemóveis.
+ */
+
+ const scale=Math.min(W/iw,H/ih);
+
+ const dw=iw*scale;
+ const dh=ih*scale;
+
+ const dx=(W-dw)/2;
+ const dy=(H-dh)/2;
+
+ /*
+  Preenchimento desfocado nas laterais
+  para não aparecerem barras pretas.
+ */
+
+ ctx.save();
+
+ ctx.filter="blur(18px)";
+ ctx.globalAlpha=.65;
 
  const cover=Math.max(W/iw,H/ih);
 
- const cw=iw*cover;
- const ch=ih*cover;
-
- /* Camada de preenchimento */
- ctx.save();
-
- ctx.filter="blur(16px) brightness(.55)";
-
  ctx.drawImage(
-  reception,
-  (W-cw)/2,
-  (H-ch)/2,
-  cw,
-  ch
+  photo,
+  (W-iw*cover)/2,
+  (H-ih*cover)/2,
+  iw*cover,
+  ih*cover
  );
 
  ctx.restore();
 
- /* Fotografia completa sem cortes */
- const contain=Math.min(W/iw,H/ih);
-
- const dw=iw*contain;
- const dh=ih*contain;
-
  ctx.save();
 
- ctx.shadowColor="#0008";
- ctx.shadowBlur=15;
+ ctx.fillStyle="rgba(0,0,0,.16)";
+ ctx.fillRect(0,0,W,H);
 
- ctx.drawImage(
-  reception,
-  (W-dw)/2,
-  (H-dh)/2,
-  dw,
-  dh
- );
+ ctx.drawImage(photo,dx,dy,dw,dh);
 
  ctx.restore();
-
 }
 
-/* SOMBRAS */
+/* =====================================
+   PERSONAGENS
+===================================== */
 
-function shadow(r){
+const colors=[
+ ["#edbc98","#30232c","#28527b","#d74b55"],
+ ["#d49a76","#171b25","#604044","#d5a94f"],
+ ["#f1c9a0","#a88b6c","#315e51","#54a5bd"],
+ ["#c98a6b","#38271f","#57416e","#e2a74c"],
+ ["#e8b68f","#40312a","#33445f","#ce5368"],
+ ["#d7a17e","#241b1a","#77704b","#d3bd63"]
+];
 
- ctx.fillStyle="rgba(0,0,0,.32)";
+const lines=[
+ "QUERO FALAR COM O GERENTE!",
+ "O AR CONDICIONADO NÃO FUNCIONA!",
+ "O MEU QUARTO ESTÁ SUJO!",
+ "A MÁQUINA DE CAFÉ ESTÁ AVARIADA!",
+ "QUERO UM QUARTO COM VISTA!",
+ "ESTÁ A CHEIRAR A ESGOTO!",
+ "A MINHA RESERVA DESAPARECEU!",
+ "ONDE ESTÁ A MINHA MALA?",
+ "ESTOU À ESPERA HÁ MUITO TEMPO!",
+ "QUERO UMA SOLUÇÃO IMEDIATAMENTE!"
+];
 
- ctx.beginPath();
-
- ctx.ellipse(
-  0,r*1.12,
-  r*.55,
-  r*.13,
-  0,0,Math.PI*2
- );
-
- ctx.fill();
+function random(a,b){
+ return a+Math.random()*(b-a);
 }
 
-/* TAMANHO DOS BONECOS */
+function newGuest(x,y,queue=false){
 
-function guestSize(){
+ const color=colors[Math.floor(Math.random()*colors.length)];
 
- return clamp(H*.085,45,78);
-}
+ const r=Math.max(26,Math.min(48,H*.052));
 
-/* CRIAR CLIENTE */
-
-function createGuest(x=W+80,y=H*.55,queue=false){
-
- const skin=skins[
-  Math.floor(Math.random()*skins.length)
- ];
-
- const r=guestSize();
-
- const g={
+ return {
   id:Math.random(),
-  x,y,r,
-  skin,
-  speed:rand(.45,.8)+phase*.035,
-  walk:rand(0,10),
-  bob:rand(0,10),
-  hp:1,
+  x,y,
+  r,
+  color,
+  speed:random(.6,1.1)+phase*.035,
+  walk:random(0,10),
   queue,
-  bag:true,
-  bagColor:["#9b6945","#344e70","#8c8c8c","#9b3f50"][
-   Math.floor(Math.random()*4)
-  ],
-  targetX:null,
-  targetY:null,
-  message:normalMessages[
-   Math.floor(Math.random()*normalMessages.length)
-  ],
-  mood:"angry",
-  bubbleTimer:rand(80,160),
-  reaction:0
+  targetX:queue?random(W*.66,W*.84):null,
+  targetY:y,
+  hp:1,
+  special:null,
+  speech:lines[Math.floor(Math.random()*lines.length)],
+  speechTime:random(0,100),
+  bag:Math.random()>.25
  };
-
- guests.push(g);
-
- return g;
 }
-
-/* GRUPOS DE CLIENTES */
 
 function createGroup(){
 
- const total=Math.min(10+phase*2,22);
+ const amount=Math.min(8+phase*2,22);
 
- const spacing=clamp(W*.075,35,65);
+ const rows=4;
+ const spacing=Math.min(76,W*.115);
 
- const r=guestSize();
-
- for(let i=0;i<total;i++){
+ for(let i=0;i<amount;i++){
 
   const col=i%5;
   const row=Math.floor(i/5);
 
-  const targetX=Math.min(
-   W*.90,
-   W*.67+col*spacing
+  const x=W+70+col*15;
+
+  const y=Math.min(
+   H*.85,
+   H*.47+row*spacing
   );
 
-  const targetY=H*.48+row*Math.min(r*.9,H*.09);
+  const g=newGuest(x,y,true);
 
-  const g=createGuest(
-   W+80+col*20,
-   targetY,
-   true
+  g.targetX=Math.min(
+   W*.92,
+   W*.68+col*spacing
   );
 
-  g.targetX=targetX;
-  g.targetY=targetY;
+  g.targetY=y;
+
+  guests.push(g);
  }
 
- showMessage(
-  "CHEGOU UM GRUPO DE "+total+" CLIENTES!"
- );
-
+ showSpeech("CHEGOU UM GRUPO DE "+amount+" CLIENTES!");
 }
 
-/* PERSONAGENS ESPECIAIS */
+/* =====================================
+   PERSONAGENS ESPECIAIS
+===================================== */
 
-function createSpecial(type){
+function specialGuest(type){
 
- const r=guestSize();
+ const r=Math.max(30,Math.min(48,H*.055));
 
  const g={
   id:Math.random(),
-  special:type,
-  x:W+70,
-  y:H*.52,
-  r:r*1.12,
-  speed:1.1,
-  hp:1,
+  x:W+60,
+  y:H*.55,
+  r,
   walk:0,
-  bubbleTimer:100,
-  reaction:0
+  hp:1,
+  speed:1.2,
+  special:type,
+  speech:"",
+  queue:false,
+  color:colors[0],
+  bag:false
  };
 
  if(type==="thief"){
-  g.x=-80;
-  g.speed=2.3;
-  g.message="NINGUÉM VAI APANHAR-ME!";
+  g.x=-60;
+  g.speed=2.5;
+  g.speech="DEVOLVAM-ME OS 50 EUROS!";
  }
 
  if(type==="fire"){
-  g.x=W*.8;
-  g.speed=1.2;
-  g.message="FOGO! FOGO! AJUDEM-ME!";
+  g.x=W*.85;
+  g.speed=1.4;
+  g.speech="FOGO! FOGO! SOCORRO!";
  }
 
  if(type==="bellhop"){
-  g.x=W*.68;
-  g.y=H*.50;
+  g.x=W*.69;
   g.speed=0;
-  g.message="PRECISO DA CHAVE PARA O TRANSFER!";
+  g.speech="PRECISO DA CHAVE PARA O TRANSFER!";
  }
 
  if(type==="complainer"){
-  g.message="QUERO FALAR COM O GERENTE!";
-  g.speed=1;
+  g.speed=1.3;
+  g.speech="QUERO FALAR COM O GERENTE!";
  }
 
  guests.push(g);
@@ -890,113 +819,74 @@ function createSpecial(type){
  return g;
 }
 
-/* DESENHAR BONECOS */
+/* =====================================
+   DESENHAR HÓSPEDE
+===================================== */
 
-function drawPerson(g){
+function drawGuest(g){
 
  const r=g.r;
+ const [skin,hair,suit,tie]=g.color;
 
- const walk=Math.sin(g.walk)*r*.09;
-
- const special=!!g.special;
-
- const skin=g.skin||{
-  skin:"#e9b58c",
-  hair:"#211b24",
-  suit:"#244e78",
-  tie:"#e64e57"
- };
-
- let suit=skin.suit;
- let hair=skin.hair;
- let face=skin.skin;
- let tie=skin.tie;
-
- if(g.special==="thief"){
-  suit="#151a26";
-  hair="#17151a";
- }
-
- if(g.special==="fire"){
-  suit="#737c88";
-  hair="#d7b75e";
- }
-
- if(g.special==="bellhop"){
-  suit="#24558a";
-  hair="#201b23";
- }
-
- if(g.special==="complainer"){
-  suit="#61416c";
- }
+ const walk=Math.sin(g.walk)*r*.08;
 
  ctx.save();
 
  ctx.translate(g.x,g.y);
 
- if(g.special==="thief"){
-  ctx.scale(-1,1);
- }
+ /* Sombra */
 
- shadow(r);
+ ctx.fillStyle="rgba(0,0,0,.35)";
+ ctx.beginPath();
+ ctx.ellipse(0,r*1.1,r*.55,r*.13,0,0,Math.PI*2);
+ ctx.fill();
 
  /* Pernas */
 
- ctx.strokeStyle="#252a32";
- ctx.lineWidth=r*.13;
+ ctx.strokeStyle="#222832";
+ ctx.lineWidth=r*.19;
  ctx.lineCap="round";
 
  ctx.beginPath();
 
  ctx.moveTo(-r*.2,r*.65);
- ctx.lineTo(-r*.24+walk,r*1.08);
+ ctx.lineTo(-r*.25+walk,r*1.05);
 
  ctx.moveTo(r*.2,r*.65);
- ctx.lineTo(r*.24-walk,r*1.08);
+ ctx.lineTo(r*.25-walk,r*1.05);
 
  ctx.stroke();
 
  /* Sapatos */
 
- ctx.lineWidth=r*.15;
+ ctx.strokeStyle="#171b22";
+ ctx.lineWidth=r*.19;
 
  ctx.beginPath();
+ ctx.moveTo(-r*.25+walk,r*1.05);
+ ctx.lineTo(-r*.44+walk,r*1.05);
 
- ctx.moveTo(-r*.24+walk,r*1.08);
- ctx.lineTo(-r*.43+walk,r*1.08);
-
- ctx.moveTo(r*.24-walk,r*1.08);
- ctx.lineTo(r*.43-walk,r*1.08);
+ ctx.moveTo(r*.25-walk,r*1.05);
+ ctx.lineTo(r*.44-walk,r*1.05);
 
  ctx.stroke();
 
  /* Mala */
 
- if(!special&&g.bag){
+ if(g.bag){
 
-  ctx.fillStyle=g.bagColor;
+  ctx.fillStyle="#81583d";
+  ctx.fillRect(r*.48,r*.3,r*.47,r*.68);
 
-  ctx.fillRect(
-   r*.43,r*.25,
-   r*.58,r*.65
-  );
-
-  ctx.strokeStyle="#e9c88b";
+  ctx.strokeStyle="#e4c28b";
   ctx.lineWidth=2;
-
-  ctx.strokeRect(
-   r*.43,r*.25,
-   r*.58,r*.65
-  );
+  ctx.strokeRect(r*.48,r*.3,r*.47,r*.68);
 
   ctx.beginPath();
-
-  ctx.moveTo(r*.57,r*.25);
-  ctx.lineTo(r*.57,r*.08);
-  ctx.lineTo(r*.89,r*.08);
-  ctx.lineTo(r*.89,r*.25);
-
+  ctx.moveTo(r*.59,r*.3);
+  ctx.lineTo(r*.59,r*.17);
+  ctx.lineTo(r*.84,r*.17);
+  ctx.lineTo(r*.84,r*.3);
   ctx.stroke();
  }
 
@@ -1005,25 +895,35 @@ function drawPerson(g){
  ctx.fillStyle=suit;
 
  ctx.beginPath();
-
- ctx.moveTo(-r*.42,-r*.04);
- ctx.lineTo(-r*.51,r*.72);
- ctx.lineTo(r*.51,r*.72);
- ctx.lineTo(r*.42,-r*.04);
-
+ ctx.moveTo(-r*.42,-r*.05);
+ ctx.lineTo(-r*.52,r*.7);
+ ctx.lineTo(r*.52,r*.7);
+ ctx.lineTo(r*.42,-r*.05);
  ctx.closePath();
  ctx.fill();
 
- /* Camisa */
+ /* Braços */
 
- ctx.fillStyle="#f5f0e9";
+ ctx.strokeStyle=suit;
+ ctx.lineWidth=r*.22;
 
  ctx.beginPath();
+ ctx.moveTo(-r*.38,r*.04);
+ ctx.lineTo(-r*.63,r*.55+walk);
 
+ ctx.moveTo(r*.38,r*.04);
+ ctx.lineTo(r*.63,r*.55-walk);
+
+ ctx.stroke();
+
+ /* Camisa */
+
+ ctx.fillStyle="#f4f0e8";
+
+ ctx.beginPath();
  ctx.moveTo(-r*.17,-r*.04);
- ctx.lineTo(0,r*.20);
+ ctx.lineTo(0,r*.22);
  ctx.lineTo(r*.17,-r*.04);
-
  ctx.fill();
 
  /* Gravata */
@@ -1031,51 +931,23 @@ function drawPerson(g){
  ctx.fillStyle=tie;
 
  ctx.beginPath();
-
- ctx.moveTo(0,r*.07);
- ctx.lineTo(-r*.08,r*.2);
- ctx.lineTo(0,r*.62);
- ctx.lineTo(r*.08,r*.2);
-
+ ctx.moveTo(0,r*.04);
+ ctx.lineTo(-r*.09,r*.17);
+ ctx.lineTo(0,r*.55);
+ ctx.lineTo(r*.09,r*.17);
  ctx.fill();
 
- /* Braços */
+ /* Pescoço */
 
- ctx.strokeStyle=suit;
- ctx.lineWidth=r*.19;
- ctx.lineCap="round";
-
- ctx.beginPath();
-
- ctx.moveTo(-r*.4,r*.08);
- ctx.lineTo(-r*.65,r*.48+walk);
-
- ctx.moveTo(r*.4,r*.08);
- ctx.lineTo(r*.65,r*.48-walk);
-
- ctx.stroke();
+ ctx.fillStyle=skin;
+ ctx.fillRect(-r*.12,-r*.22,r*.24,r*.27);
 
  /* Cabeça */
 
- ctx.fillStyle=face;
+ ctx.fillStyle=skin;
 
  ctx.beginPath();
-
- ctx.ellipse(
-  0,-r*.34,
-  r*.43,r*.48,
-  0,0,Math.PI*2
- );
-
- ctx.fill();
-
- /* Orelhas */
-
- ctx.beginPath();
-
- ctx.arc(-r*.43,-r*.34,r*.105,0,Math.PI*2);
- ctx.arc(r*.43,-r*.34,r*.105,0,Math.PI*2);
-
+ ctx.arc(0,-r*.4,r*.43,0,Math.PI*2);
  ctx.fill();
 
  /* Cabelo */
@@ -1083,256 +955,188 @@ function drawPerson(g){
  ctx.fillStyle=hair;
 
  ctx.beginPath();
-
- ctx.arc(
-  0,-r*.49,
-  r*.45,
-  Math.PI,
-  Math.PI*2
- );
-
+ ctx.arc(0,-r*.48,r*.44,Math.PI,Math.PI*2);
  ctx.fill();
 
- ctx.fillRect(
-  -r*.44,
-  -r*.49,
-  r*.12,
-  r*.3
- );
+ ctx.fillRect(-r*.42,-r*.47,r*.11,r*.28);
 
- if(g.special==="fire"){
+ /* Orelhas */
 
-  ctx.fillStyle="#dfc06c";
+ ctx.fillStyle=skin;
 
-  ctx.fillRect(
-   -r*.4,-r*.65,
-   r*.8,r*.12
-  );
+ ctx.beginPath();
+ ctx.arc(-r*.43,-r*.39,r*.1,0,Math.PI*2);
+ ctx.arc(r*.43,-r*.39,r*.1,0,Math.PI*2);
+ ctx.fill();
 
- }
-
- if(g.special==="bellhop"){
-
-  ctx.fillStyle="#d83d49";
-
-  ctx.fillRect(
-   -r*.42,-r*.68,
-   r*.84,r*.14
-  );
-
- }
-
- /* OLHOS */
+ /* Olhos */
 
  ctx.fillStyle="white";
 
  ctx.beginPath();
-
- ctx.arc(-r*.15,-r*.35,r*.105,0,Math.PI*2);
- ctx.arc(r*.15,-r*.35,r*.105,0,Math.PI*2);
-
+ ctx.arc(-r*.16,-r*.41,r*.105,0,Math.PI*2);
+ ctx.arc(r*.16,-r*.41,r*.105,0,Math.PI*2);
  ctx.fill();
 
- ctx.fillStyle="#222";
+ ctx.fillStyle="#171717";
 
  ctx.beginPath();
-
- ctx.arc(-r*.15,-r*.35,r*.045,0,Math.PI*2);
- ctx.arc(r*.15,-r*.35,r*.045,0,Math.PI*2);
-
+ ctx.arc(-r*.16,-r*.41,r*.05,0,Math.PI*2);
+ ctx.arc(r*.16,-r*.41,r*.05,0,Math.PI*2);
  ctx.fill();
 
- /* EXPRESSÕES */
+ /* Sorriso */
 
- ctx.strokeStyle="#713e3c";
- ctx.lineWidth=2.5;
-
- ctx.beginPath();
-
- if(g.reaction>0){
-
-  /* Boca de surpresa */
-
-  ctx.ellipse(0,-r*.16,r*.08,r*.12,0,0,Math.PI*2);
-
- }else if(g.mood==="angry"){
-
-  ctx.moveTo(-r*.10,-r*.14);
-  ctx.lineTo(r*.10,-r*.14);
-
- }else{
-
-  ctx.arc(0,-r*.20,r*.14,.1,Math.PI-.1);
-
- }
-
- ctx.stroke();
-
- /* LADRÃO: DINHEIRO */
-
- if(g.special==="thief"){
-
-  ctx.fillStyle="#f3a23c";
-
-  ctx.fillRect(
-   r*.22,r*.1,
-   r*.85,r*.35
-  );
-
-  ctx.fillStyle="#62340e";
-
-  ctx.font="bold "+r*.21+"px Arial";
-  ctx.textAlign="center";
-
-  ctx.fillText("50€",r*.64,r*.34);
- }
-
- ctx.restore();
-}
-
-/* BALÕES DE FALA */
-
-function drawBubble(g){
-
- if(!g.message)return;
-
- const r=g.r;
-
- const width=clamp(
-  g.message.length*5.7,
-  100,
-  Math.min(230,W*.68)
- );
-
- const height=43;
-
- const x=clamp(
-  g.x-width/2,
-  5,
-  W-width-5
- );
-
- let y=g.y-r*1.65;
-
- y=clamp(y,215,H*.65);
-
- ctx.save();
-
- ctx.fillStyle="rgba(255,255,255,.96)";
- ctx.strokeStyle="#d94d69";
+ ctx.strokeStyle="#763f40";
  ctx.lineWidth=2;
 
  ctx.beginPath();
-
- ctx.roundRect(
-  x,y,
-  width,height,
-  9
- );
-
- ctx.fill();
+ ctx.arc(0,-r*.28,r*.12,.15,Math.PI-.15);
  ctx.stroke();
 
- /* Bico do balão */
+ /* Crachá */
 
- ctx.beginPath();
-
- ctx.moveTo(g.x-7,y+height-1);
- ctx.lineTo(g.x,y+height+9);
- ctx.lineTo(g.x+8,y+height-1);
-
- ctx.fill();
-
- ctx.strokeStyle="#d94d69";
-
- ctx.beginPath();
-
- ctx.moveTo(g.x-7,y+height-1);
- ctx.lineTo(g.x,y+height+9);
- ctx.lineTo(g.x+8,y+height-1);
-
- ctx.stroke();
-
- ctx.fillStyle="#29202a";
- ctx.font="bold 10px Arial";
- ctx.textAlign="center";
-
- const words=g.message.split(" ");
-
- let lines=[];
- let line="";
-
- for(const word of words){
-
-  const test=line?line+" "+word:word;
-
-  if(ctx.measureText(test).width>width-12){
-
-   lines.push(line);
-   line=word;
-
-  }else{
-
-   line=test;
-  }
- }
-
- if(line)lines.push(line);
-
- const lineHeight=12;
- const startY=y+height/2-
-  (lines.length-1)*lineHeight/2+3;
-
- lines.slice(0,3).forEach((text,i)=>{
-
-  ctx.fillText(
-   text,
-   x+width/2,
-   startY+i*lineHeight
-  );
-
- });
+ ctx.fillStyle="#f2ce75";
+ ctx.fillRect(r*.14,r*.17,r*.27,r*.12);
 
  ctx.restore();
 }
 
-/* FLECHAS */
+/* =====================================
+   PERSONAGENS ESPECIAIS
+===================================== */
+
+function drawSpecial(g){
+
+ const r=g.r;
+
+ ctx.save();
+ ctx.translate(g.x,g.y);
+
+ let suit="#284d7b";
+ let skin="#e8b68f";
+ let hair="#211c23";
+
+ if(g.special==="fire"){
+  suit="#555d72";
+  hair="#d9b966";
+ }
+
+ if(g.special==="bellhop"){
+  suit="#245b91";
+  hair="#211b1d";
+ }
+
+ if(g.special==="thief"){
+  suit="#151a24";
+  skin="#b87c5a";
+ }
+
+ if(g.special==="complainer"){
+  suit="#674a78";
+ }
+
+ /* Corpo */
+
+ ctx.fillStyle=suit;
+ ctx.beginPath();
+ ctx.moveTo(-r*.4,0);
+ ctx.lineTo(-r*.52,r*.75);
+ ctx.lineTo(r*.52,r*.75);
+ ctx.lineTo(r*.4,0);
+ ctx.fill();
+
+ /* Cabeça */
+
+ ctx.fillStyle=skin;
+ ctx.beginPath();
+ ctx.arc(0,-r*.35,r*.43,0,Math.PI*2);
+ ctx.fill();
+
+ /* Cabelo */
+
+ ctx.fillStyle=hair;
+ ctx.beginPath();
+ ctx.arc(0,-r*.48,r*.45,Math.PI,Math.PI*2);
+ ctx.fill();
+
+ /* Olhos */
+
+ ctx.fillStyle="#fff";
+ ctx.beginPath();
+ ctx.arc(-r*.14,-r*.35,r*.09,0,Math.PI*2);
+ ctx.arc(r*.14,-r*.35,r*.09,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle="#111";
+ ctx.beginPath();
+ ctx.arc(-r*.14,-r*.35,r*.04,0,Math.PI*2);
+ ctx.arc(r*.14,-r*.35,r*.04,0,Math.PI*2);
+ ctx.fill();
+
+ /* Acessórios */
+
+ if(g.special==="thief"){
+
+  ctx.fillStyle="#f0a33d";
+  ctx.fillRect(r*.25,r*.13,r*.72,r*.37);
+
+  ctx.fillStyle="#713c12";
+  ctx.font="bold 13px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("50€",r*.61,r*.37);
+ }
+
+ if(g.special==="bellhop"){
+
+  ctx.fillStyle="#d83c52";
+  ctx.fillRect(-r*.4,-r*.73,r*.8,r*.12);
+
+ }
+
+ if(g.special==="fire"){
+
+  ctx.fillStyle="#ff9d26";
+  ctx.font="bold 20px Arial";
+  ctx.textAlign="center";
+  ctx.fillText("!",0,-r*.8);
+ }
+
+ ctx.restore();
+}
+
+/* =====================================
+   FLECHAS
+===================================== */
 
 function shoot(){
 
- if(!active||paused)return;
+ if(!playing||paused)return;
 
  if(ammo<=0){
-
-  showMessage("NÃO TENS MAIS FLECHAS!");
+  showSpeech("NÃO TENS MAIS FLECHAS!");
   return;
  }
 
  ammo--;
 
  const angle=Math.atan2(
-  pointer.y-bow.y,
-  pointer.x-bow.x
+  aim.y-H*.72,
+  aim.x-W*.12
  );
 
  arrows.push({
-
-  x:bow.x+Math.cos(angle)*35,
-  y:bow.y+Math.sin(angle)*35,
-
+  x:W*.12,
+  y:H*.72,
   vx:Math.cos(angle)*17,
   vy:Math.sin(angle)*17,
-
   angle,
-  life:90,
-  hit:new Set()
-
+  life:100,
+  hit:[]
  });
 
  updateHUD();
 }
-
-/* DESENHAR FLECHA */
 
 function drawArrow(a){
 
@@ -1341,494 +1145,317 @@ function drawArrow(a){
  ctx.translate(a.x,a.y);
  ctx.rotate(a.angle);
 
- ctx.strokeStyle="#d9c397";
+ ctx.strokeStyle="#d6bd91";
  ctx.lineWidth=5;
  ctx.lineCap="round";
 
  ctx.beginPath();
-
  ctx.moveTo(-25,0);
  ctx.lineTo(25,0);
-
  ctx.stroke();
 
- ctx.fillStyle="#f5c96f";
+ ctx.fillStyle="#ffcf78";
 
  ctx.beginPath();
-
- ctx.moveTo(30,0);
- ctx.lineTo(17,-7);
- ctx.lineTo(17,7);
-
- ctx.closePath();
+ ctx.moveTo(31,0);
+ ctx.lineTo(17,-8);
+ ctx.lineTo(17,8);
  ctx.fill();
 
  ctx.restore();
 }
 
-/* EFEITOS DE IMPACTO */
+/* =====================================
+   IMPACTOS E EFEITOS
+===================================== */
 
-function blood(x,y){
+function impact(x,y){
 
- for(let i=0;i<19;i++){
+ for(let i=0;i<15;i++){
 
-  const angle=rand(0,Math.PI*2);
-  const speed=rand(1,5);
+  const angle=random(0,Math.PI*2);
+  const speed=random(1,5);
 
   particles.push({
-
    x,y,
-
    vx:Math.cos(angle)*speed,
    vy:Math.sin(angle)*speed,
-
-   life:rand(16,30),
-   max:30,
-
-   size:rand(2,6),
-
-   color:Math.random()>.35?
-    "#d92745":"#ff7182"
-
+   life:random(15,30),
+   size:random(2,5),
+   color:i%2?"#e83e55":"#ffb0a0"
   });
  }
-
- /* Estrelas de reação */
-
- addText(x,y-25,reactions[
-  Math.floor(Math.random()*reactions.length)
- ]);
 }
 
-function addText(x,y,text){
+function drawParticles(dt){
 
- texts.push({
-  x,y,
-  text,
-  life:50
- });
-}
+ for(let i=particles.length-1;i>=0;i--){
 
-/* DESENHAR EFEITOS */
+  const p=particles[i];
 
-function drawParticles(){
+  p.x+=p.vx*dt;
+  p.y+=p.vy*dt;
+  p.vy+=.1*dt;
+  p.life-=dt;
 
- for(const p of particles){
-
-  ctx.globalAlpha=p.life/p.max;
+  ctx.globalAlpha=Math.max(0,p.life/30);
 
   ctx.fillStyle=p.color;
-
   ctx.beginPath();
-
-  ctx.arc(
-   p.x,p.y,
-   p.size,
-   0,Math.PI*2
-  );
-
+  ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
   ctx.fill();
- }
 
- ctx.globalAlpha=1;
-
- for(const t of texts){
-
-  ctx.globalAlpha=t.life/50;
-
-  ctx.fillStyle="#ffda84";
-  ctx.font="bold 15px Arial";
-  ctx.textAlign="center";
-
-  ctx.shadowColor="#000";
-  ctx.shadowBlur=5;
-
-  ctx.fillText(t.text,t.x,t.y);
-
-  ctx.shadowBlur=0;
+  if(p.life<=0)particles.splice(i,1);
  }
 
  ctx.globalAlpha=1;
 }
 
-/* MENSAGENS GERAIS */
+/* =====================================
+   BALÕES E MENSAGENS
+===================================== */
 
-function showMessage(text){
+function showSpeech(text){
 
- $("toast").textContent=text;
- $("toast").style.opacity=1;
+ $("speech").textContent=text;
+ $("speech").classList.add("show");
 
- clearTimeout(messageTimer);
+ clearTimeout(speechClock);
 
- messageTimer=setTimeout(()=>{
-
-  $("toast").style.opacity=0;
-
- },2300);
+ speechClock=setTimeout(()=>{
+  $("speech").classList.remove("show");
+ },2500);
 }
 
-/* HUD */
+/* =====================================
+   ATUALIZAR PAINEL
+===================================== */
 
 function updateHUD(){
 
- const stats=[
+ $("level").textContent=phase;
+ $("points").textContent=score.toLocaleString("pt-PT");
+ $("record").textContent=record.toLocaleString("pt-PT");
+ $("ammo").textContent="➶ "+ammo;
+ $("lives").textContent="♥ ".repeat(lives);
 
-  ["FASE",phase],
-
-  ["PONTOS",score],
-
-  ["RECORDE",best],
-
-  ["FLECHAS","➶ "+ammo],
-
-  ["VIDAS","♥".repeat(Math.max(0,lives))]
-
- ];
-
- $("hud").innerHTML=stats.map(s=>`
-
-  <div class="stat">
-   <label>${s[0]}</label>
-   <b>${s[1]}</b>
-  </div>
-
- `).join("");
-
- $("phaseLabel").textContent=
+ $("phaseText").textContent=
   "FASE "+phase+" · "+kills+"/"+needed;
 
- $("progressFill").style.width=
-  clamp(kills/needed*100,0,100)+"%";
+ $("fill").style.width=
+  Math.min(100,kills/needed*100)+"%";
 }
 
-/* INÍCIO */
+/* =====================================
+   INÍCIO E REINÍCIO
+===================================== */
 
-function startGame(){
+function resetGame(){
 
- score=0;
  phase=1;
+ score=0;
  lives=5;
  ammo=65;
-
- combo=0;
  kills=0;
  needed=7;
+ combo=0;
 
  guests=[];
  arrows=[];
  particles=[];
- texts=[];
 
- spawnTimer=0;
- groupTimer=0;
- thiefTimer=0;
- fireTimer=0;
- complaintTimer=0;
- bellhopTimer=0;
-
- active=true;
- paused=false;
-
- $("screen").style.display="none";
-
- createGroup();
- createSpecial("bellhop");
+ spawnClock=0;
+ groupClock=0;
+ thiefClock=0;
+ fireClock=0;
+ complaintClock=0;
 
  updateHUD();
-
- showMessage("PROTEGE A RECEÇÃO DO HOTEL!");
 }
 
-/* PONTUAÇÃO */
+function startGame(){
 
-function addScore(points){
+ resetGame();
+
+ $("menu").classList.add("hidden");
+ $("pause").classList.add("hidden");
+ $("gameover").classList.add("hidden");
+
+ playing=true;
+ paused=false;
+
+ createGroup();
+ specialGuest("bellhop");
+
+ showSpeech("O HOTEL ESTÁ EM PERIGO! PROTEGE A RECEÇÃO!");
+
+}
+
+function pauseGame(){
+
+ if(!playing)return;
+
+ playing=false;
+ paused=true;
+
+ $("pause").classList.remove("hidden");
+}
+
+function resumeGame(){
+
+ $("pause").classList.add("hidden");
+
+ playing=true;
+ paused=false;
+}
+
+function returnMenu(){
+
+ playing=false;
+ paused=false;
+
+ $("pause").classList.add("hidden");
+ $("gameover").classList.add("hidden");
+ $("menu").classList.remove("hidden");
+
+}
+
+function finishGame(){
+
+ playing=false;
+ paused=false;
+
+ $("finalText").innerHTML=
+  "PONTUAÇÃO: <b>"+score.toLocaleString("pt-PT")+
+  "</b><br>FASE ALCANÇADA: <b>"+phase+
+  "</b><br>RECORDE: <b>"+record.toLocaleString("pt-PT")+"</b>";
+
+ $("gameover").classList.remove("hidden");
+}
+
+/* =====================================
+   PONTUAÇÃO
+===================================== */
+
+function addPoints(points){
 
  score+=points;
 
- if(score>best){
+ if(score>record){
 
-  best=score;
+  record=score;
 
   try{
-
    localStorage.setItem(
     "hotelHunterRecord",
-    String(best)
+    String(record)
    );
-
   }catch(e){}
+ }
+
+ updateHUD();
 }
 
-/* PRÓXIMA FASE */
+/* =====================================
+   FASE SEGUINTE
+===================================== */
 
 function nextPhase(){
 
  if(kills<needed)return;
 
  phase++;
-
  kills=0;
 
  needed=7+phase*2;
 
  ammo+=25;
-
  lives=Math.min(5,lives+1);
 
  updateHUD();
 
- showMessage("NOVA FASE! FASE "+phase);
+ showSpeech("PARABÉNS! PASSASTE PARA A FASE "+phase+"!");
 
  createGroup();
 }
 
-/* COLISÕES */
-
-function collision(a,g){
-
- const dx=a.x-g.x;
- const dy=a.y-g.y;
-
- return Math.hypot(dx,dy)<g.r*.72;
-}
-
-/* ATINGIR PERSONAGEM */
-
-function hitGuest(g){
-
- blood(g.x,g.y);
-
- shake=4;
-
- if(g.special==="bellhop"){
-
-  addScore(150);
-
-  showMessage("BAGAGEIRO ATINGIDO! +150");
-
-  return;
- }
-
- if(g.special==="thief"){
-
-  addScore(300);
-
-  showMessage("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");
-
-  return;
- }
-
- if(g.special==="fire"){
-
-  addScore(250);
-
-  showMessage("SITUAÇÃO DO FOGO RESOLVIDA!");
-
-  return;
- }
-
- if(g.special==="complainer"){
-
-  addScore(200);
-
-  showMessage("RECLAMAÇÃO RESOLVIDA!");
-
-  return;
- }
-
- const points=100+combo*20;
-
- addScore(points);
-
- combo++;
-
- kills++;
-
- showMessage("CLIENTE RESOLVIDO! +"+points);
-
- nextPhase();
-
-}
-
-/* FIM DO JOGO */
-
-function gameOver(){
-
- active=false;
- paused=false;
-
- $("screen").style.display="flex";
-
- $("box").innerHTML=`
-
-  <h2>FIM DE <span>JOGO</span></h2>
-
-  <p>
-
-   O hotel precisa de uma nova equipa!<br><br>
-
-   PONTOS: <b>${score}</b><br>
-
-   FASE: <b>${phase}</b><br>
-
-   RECORDE: <b>${best}</b><br>
-
-   CLIENTES: <b>${kills}</b>
-
-  </p>
-
-  <button class="mainButton" id="restart">
-   JOGAR NOVAMENTE
-  </button>
-
- `;
-
- $("restart").onclick=startGame;
-}
-
-/* PAUSAR */
-
-function pauseGame(){
-
- if(!active)return;
-
- active=false;
- paused=true;
-
- $("screen").style.display="flex";
-
- $("box").innerHTML=`
-
-  <h2>JOGO <span>PAUSADO</span></h2>
-
-  <p>
-   O hotel está à tua espera.<br>
-   A receção está em segurança por agora.
-  </p>
-
-  <button class="mainButton" id="resume">
-   CONTINUAR JOGO
-  </button>
-
- `;
-
- $("resume").onclick=()=>{
-
-  paused=false;
-  active=true;
-
-  $("screen").style.display="none";
-
- };
-
-}
-
-/* ATUALIZAR */
+/* =====================================
+   ATUALIZAÇÃO DO JOGO
+===================================== */
 
 function update(dt){
 
- if(!active)return;
+ if(!playing||paused)return;
 
- frame++;
+ spawnClock+=dt;
+ groupClock+=dt;
+ thiefClock+=dt;
+ fireClock+=dt;
+ complaintClock+=dt;
 
- spawnTimer+=dt;
- groupTimer+=dt;
- thiefTimer+=dt;
- fireTimer+=dt;
- complaintTimer+=dt;
- bellhopTimer+=dt;
+ /* Grupos */
 
- /* GRUPOS */
+ if(groupClock>520){
 
- if(groupTimer>Math.max(300,600-phase*12)){
-
-  const normal=guests.filter(g=>!g.special).length;
-
-  if(normal<35)createGroup();
-
-  groupTimer=0;
- }
-
- /* CLIENTES NORMAIS */
-
- if(spawnTimer>Math.max(75,125-phase*4)){
-
-  if(guests.filter(g=>!g.special).length<40){
-
-   createGuest();
-
+  if(guests.filter(g=>!g.special).length<35){
+   createGroup();
   }
 
-  spawnTimer=0;
+  groupClock=0;
  }
 
- /* LADRÃO */
+ /* Clientes normais */
 
- if(thiefTimer>800&&!guests.some(g=>g.special==="thief")){
+ if(spawnClock>Math.max(35,100-phase*4)){
 
-  createSpecial("thief");
+  if(guests.filter(g=>!g.special).length<35){
+   guests.push(newGuest(W+50,random(H*.45,H*.8)));
+  }
 
-  thiefTimer=0;
-
-  showMessage("ATENÇÃO! O LADRÃO DOS 50 € ESTÁ NO HOTEL!");
-
+  spawnClock=0;
  }
 
- /* FOGO */
+ /* Ladrão */
 
- if(fireTimer>950&&!guests.some(g=>g.special==="fire")){
+ if(thiefClock>650&&!guests.some(g=>g.special==="thief")){
 
-  createSpecial("fire");
+  specialGuest("thief");
 
-  fireTimer=0;
+  thiefClock=0;
 
-  showMessage("FOGO! FOGO! UM HÓSPEDE PRECISA DE AJUDA!");
-
+  showSpeech("ATENÇÃO! O LADRÃO DOS 50 EUROS!");
  }
 
- /* BAGAGEIRO */
+ /* Fogo */
 
- if(
-  !guests.some(g=>g.special==="bellhop")&&
-  bellhopTimer>550
- ){
+ if(fireClock>850&&!guests.some(g=>g.special==="fire")){
 
-  createSpecial("bellhop");
+  specialGuest("fire");
 
-  bellhopTimer=0;
+  fireClock=0;
+
+  showSpeech("FOGO! FOGO! SOCORRO!");
  }
 
- /* RECLAMAÇÕES */
+ /* Reclamações */
 
- if(
-  complaintTimer>800&&
-  !guests.some(g=>g.special==="complainer")
- ){
+ if(complaintClock>700&&!guests.some(g=>g.special==="complainer")){
 
-  createSpecial("complainer");
+  specialGuest("complainer");
 
-  complaintTimer=0;
-
+  complaintClock=0;
  }
 
- /* MOVIMENTAÇÃO */
+ /* Movimento */
 
  for(const g of guests){
 
   g.walk+=.12*dt;
-  g.bubbleTimer-=dt;
 
   if(g.special==="bellhop"){
 
-   g.x=W*.68;
-   g.y=H*.50;
-
-   continue;
-  }
-
-  if(g.special==="thief"){
-
-   g.x+=g.speed*dt;
+   g.x=W*.69;
+   g.y=H*.55;
 
    continue;
   }
@@ -1837,7 +1464,16 @@ function update(dt){
 
    g.x+=g.speed*dt;
 
-   if(g.x>W+g.r)g.x=-g.r;
+   if(g.x>W+g.r){
+    g.x=-g.r;
+   }
+
+   continue;
+  }
+
+  if(g.special==="thief"){
+
+   g.x+=g.speed*dt;
 
    continue;
   }
@@ -1853,25 +1489,21 @@ function update(dt){
 
    const dx=g.targetX-g.x;
 
-   if(Math.abs(dx)>2){
+   g.x+=Math.sign(dx)*Math.min(Math.abs(dx),g.speed*dt);
 
-    g.x+=Math.sign(dx)*
-     Math.min(Math.abs(dx),g.speed*dt);
+   g.y+=(g.targetY-g.y)*.08*dt;
 
+   if(Math.abs(dx)<3){
+    g.queue=false;
    }
-
-   g.y+=(g.targetY-g.y)*.07*dt;
 
   }else{
 
    g.x-=g.speed*dt;
-
-   g.y+=Math.sin(frame*.025+g.bob)*.2*dt;
-
   }
  }
 
- /* CLIENTES QUE FOGEM */
+ /* Clientes que fogem */
 
  for(let i=guests.length-1;i>=0;i--){
 
@@ -1881,403 +1513,388 @@ function update(dt){
 
    guests.splice(i,1);
 
-   showMessage("O LADRÃO FUGIU COM OS 50 EUROS!");
+   showSpeech("O LADRÃO FUGIU COM OS 50 EUROS!");
 
+   lives--;
+
+   if(lives<=0){
+    finishGame();
+    return;
+   }
+
+   updateHUD();
    continue;
   }
 
-  if(
-   g.special==="complainer"&&
-   g.x < -g.r
-  ){
+  if(g.special==="complainer"&&g.x<-g.r){
 
    guests.splice(i,1);
-
    continue;
   }
 
-  if(
-   !g.special&&
-   !g.queue&&
-   g.x < -g.r
-  ){
+  if(!g.special&&!g.queue&&g.x<-g.r){
 
    guests.splice(i,1);
 
    lives--;
-
    combo=0;
 
-   showMessage("CLIENTE INSATISFEITO! PERDESTE UMA VIDA!");
-
-   updateHUD();
+   showSpeech("UM CLIENTE SAIU INSATISFEITO!");
 
    if(lives<=0){
-
-    gameOver();
-
+    finishGame();
     return;
    }
-  }
 
+   updateHUD();
+  }
  }
 
- /* FLECHAS */
+ /* Flechas */
 
- for(const a of arrows){
+ for(let i=arrows.length-1;i>=0;i--){
+
+  const a=arrows[i];
 
   a.x+=a.vx*dt;
   a.y+=a.vy*dt;
-
-  a.vy+=.035*dt;
+  a.vy+=.045*dt;
 
   a.angle=Math.atan2(a.vy,a.vx);
-
   a.life-=dt;
 
-  for(let i=guests.length-1;i>=0;i--){
+  let collided=false;
 
-   const g=guests[i];
+  for(let j=guests.length-1;j>=0;j--){
 
-   if(a.hit.has(g.id))continue;
+   const g=guests[j];
 
-   if(collision(a,g)){
+   if(a.hit.includes(g.id))continue;
 
-    a.hit.add(g.id);
+   const dist=Math.hypot(a.x-g.x,a.y-g.y);
 
-    g.hp--;
+   if(dist<g.r*.75){
 
-    g.reaction=20;
+    a.hit.push(g.id);
 
-    if(g.hp<=0){
+    impact(g.x,g.y);
 
-     guests.splice(i,1);
+    collided=true;
 
-     hitGuest(g);
+    guests.splice(j,1);
 
-     updateHUD();
+    if(g.special==="thief"){
+
+     addPoints(350);
+
+     showSpeech("LADRÃO APANHADO! 50 EUROS RECUPERADOS!");
+
+    }else if(g.special==="bellhop"){
+
+     addPoints(150);
+
+     showSpeech("A CHAVE DO BAGAGEIRO FOI ENTREGUE!");
+
+    }else if(g.special==="fire"){
+
+     addPoints(200);
+
+     showSpeech("SITUAÇÃO DE EMERGÊNCIA RESOLVIDA!");
+
+    }else if(g.special==="complainer"){
+
+     addPoints(175);
+
+     showSpeech("RECLAMAÇÃO RESOLVIDA!");
 
     }else{
 
-     blood(g.x,g.y);
+     combo++;
 
-     showMessage("O PERSONAGEM REAGIU!");
+     const points=100+combo*20;
 
+     addPoints(points);
+
+     kills++;
+
+     showSpeech(
+      combo>1?
+      "CLIENTE RESOLVIDO! COMBO x"+combo:
+      "CLIENTE RESOLVIDO! +"+points
+     );
+
+     nextPhase();
     }
 
     break;
    }
   }
+
+  if(
+   a.life<=0||
+   a.x>W+80||
+   a.x<-80||
+   a.y>H+80||
+   a.y<-80
+  ){
+   arrows.splice(i,1);
+  }
  }
 
- arrows=arrows.filter(a=>
-  a.life>0&&
-  a.x<W+100&&
-  a.x>-100&&
-  a.y<H+100&&
-  a.y>-100
- );
-
- /* EFEITOS */
-
- for(const p of particles){
-
-  p.x+=p.vx*dt;
-  p.y+=p.vy*dt;
-
-  p.vy+=.08*dt;
-
-  p.life-=dt;
- }
-
- particles=particles.filter(p=>p.life>0);
-
- for(const t of texts){
-
-  t.y-=.6*dt;
-  t.life-=dt;
-
- }
-
- texts=texts.filter(t=>t.life>0);
-
- if(shake>0)shake*=.8;
-
- /* SEM MUNIÇÃO */
+ /* Sem flechas */
 
  if(ammo<=0&&arrows.length===0){
 
-  gameOver();
+  showSpeech("FICASTE SEM FLECHAS!");
 
+  finishGame();
+
+  return;
  }
-
 }
 
-/* DESENHAR ARCO */
+/* =====================================
+   DESENHAR MIRA E ARCO
+===================================== */
 
-function drawBow(){
+function drawAim(){
+
+ const originX=W*.12;
+ const originY=H*.72;
 
  const angle=Math.atan2(
-  pointer.y-bow.y,
-  pointer.x-bow.x
+  aim.y-originY,
+  aim.x-originX
  );
 
  ctx.save();
 
- ctx.translate(bow.x,bow.y);
+ ctx.translate(originX,originY);
  ctx.rotate(angle);
 
- ctx.strokeStyle="#c99653";
+ ctx.strokeStyle="#d6a35f";
  ctx.lineWidth=8;
 
  ctx.beginPath();
-
- ctx.arc(0,0,37,-1.15,1.15);
-
+ ctx.arc(0,0,35,-1.1,1.1);
  ctx.stroke();
 
- ctx.strokeStyle="#f6d59c";
+ ctx.strokeStyle="#f9d79c";
  ctx.lineWidth=2;
 
  ctx.beginPath();
-
- ctx.arc(0,0,37,-1.15,1.15);
-
+ ctx.arc(0,0,35,-1.1,1.1);
  ctx.stroke();
 
  ctx.restore();
-}
 
-/* MIRA */
-
-function drawAim(){
+ /* Mira */
 
  ctx.save();
 
- ctx.strokeStyle="#ff647d";
+ ctx.strokeStyle="#ff5b78";
  ctx.lineWidth=2;
-
  ctx.shadowColor="#000";
  ctx.shadowBlur=5;
 
  ctx.beginPath();
+ ctx.arc(aim.x,aim.y,14,0,Math.PI*2);
 
- ctx.arc(
-  pointer.x,
-  pointer.y,
-  15,0,Math.PI*2
- );
+ ctx.moveTo(aim.x-23,aim.y);
+ ctx.lineTo(aim.x+23,aim.y);
 
- ctx.moveTo(pointer.x-23,pointer.y);
- ctx.lineTo(pointer.x+23,pointer.y);
-
- ctx.moveTo(pointer.x,pointer.y-23);
- ctx.lineTo(pointer.x,pointer.y+23);
+ ctx.moveTo(aim.x,aim.y-23);
+ ctx.lineTo(aim.x,aim.y+23);
 
  ctx.stroke();
 
  ctx.restore();
 }
 
-/* RENDERIZAÇÃO */
+/* =====================================
+   DESENHAR
+===================================== */
 
-function draw(){
+function draw(dt){
 
- ctx.save();
-
- if(shake>0){
-
-  ctx.translate(
-   rand(-shake,shake),
-   rand(-shake,shake)
-  );
-
- }
+ ctx.clearRect(0,0,W,H);
 
  drawBackground();
 
- /* BONECOS */
+ /* Personagens */
 
  for(const g of guests){
 
-  drawPerson(g);
-
- }
-
- /* BALÕES */
-
- for(const g of guests){
-
-  if(
-   g.bubbleTimer<0||
-   g.special||
-   g.queue
-  ){
-
-   drawBubble(g);
-
+  if(g.special){
+   drawSpecial(g);
+  }else{
+   drawGuest(g);
   }
-
  }
 
- /* FLECHAS */
+ /* Flechas */
 
  for(const a of arrows){
-
   drawArrow(a);
-
  }
 
- /* EFEITOS */
+ drawParticles(dt);
 
- drawParticles();
-
- /* ARCO E MIRA */
-
- drawBow();
-
- if(active)drawAim();
-
- /* COMBO */
-
- if(combo>1&&active){
-
-  ctx.save();
-
-  ctx.font="bold 25px Arial";
-  ctx.fillStyle="#ffdc86";
-  ctx.textAlign="center";
-
-  ctx.shadowColor="#000";
-  ctx.shadowBlur=8;
-
-  ctx.fillText(
-   "COMBO x"+combo,
-   W/2,
-   H*.34
-  );
-
-  ctx.restore();
-
- }
-
- ctx.restore();
+ drawAim();
 
 }
 
-/* CICLO PRINCIPAL */
+/* =====================================
+   CICLO PRINCIPAL
+===================================== */
 
-function loop(time){
+function loop(timestamp){
 
  const dt=Math.min(
-  (time-last)/16.67||1,
+  Math.max((timestamp-lastTime)/16.67,0),
   2
  );
 
- last=time;
+ lastTime=timestamp;
 
  update(dt);
-
- draw();
+ draw(dt);
 
  requestAnimationFrame(loop);
-
 }
 
-/* CONTROLAR A MIRA COM O TOQUE */
+/* =====================================
+   CONTROLAR MIRA
+===================================== */
 
-function movePointer(e){
+function updateAim(e){
 
  const rect=canvas.getBoundingClientRect();
 
- pointer.x=clamp(e.clientX-rect.left,0,W);
- pointer.y=clamp(e.clientY-rect.top,0,H);
-
+ aim.x=e.clientX-rect.left;
+ aim.y=e.clientY-rect.top;
 }
 
 canvas.addEventListener("pointermove",e=>{
-
- movePointer(e);
-
+ updateAim(e);
 });
 
 canvas.addEventListener("pointerdown",e=>{
 
- e.preventDefault();
+ updateAim(e);
 
- movePointer(e);
-
- if(active)shoot();
+ if(playing&&!paused){
+  shoot();
+ }
 
 });
 
-/* BOTÃO DE DISPARO */
+/* Botão grande de telemóvel */
 
-$("shootButton").addEventListener("pointerdown",e=>{
+$("shoot").addEventListener("pointerdown",e=>{
 
  e.preventDefault();
+ e.stopPropagation();
 
  shoot();
 
 });
 
-/* PAUSA */
-
-$("pauseButton").addEventListener("click",pauseGame);
-
-$("exit").addEventListener("click",pauseGame);
-
-/* INÍCIO */
-
-$("start").addEventListener("click",startGame);
-
-/* TECLADO */
+/* =====================================
+   TECLADO
+===================================== */
 
 window.addEventListener("keydown",e=>{
 
  if(e.code==="Space"){
 
   e.preventDefault();
-
   shoot();
 
  }
 
  if(e.key==="Escape"){
 
-  if(active){
-
+  if(playing){
    pauseGame();
-
   }
 
  }
 
 });
 
-/* IMPEDIR MOVIMENTAÇÃO INDESEJADA */
+/* =====================================
+   LOGIN FUNCIONAL
+===================================== */
 
-document.addEventListener("contextmenu",e=>{
+$("loginForm").addEventListener("submit",e=>{
 
  e.preventDefault();
+
+ const value=$("password").value;
+
+ if(value==="Frameloop"){
+
+  $("login").classList.add("hidden");
+
+  $("menu").classList.remove("hidden");
+
+  $("error").textContent="";
+
+  $("password").value="";
+
+ }else{
+
+  $("error").textContent="PALAVRA-PASSE INCORRETA!";
+
+  $("password").value="";
+
+ }
 
 });
 
-document.addEventListener("gesturestart",e=>{
+/* =====================================
+   BOTÕES
+===================================== */
 
- e.preventDefault();
+$("start").addEventListener("click",startGame);
 
-},{passive:false});
+$("exit").addEventListener("click",()=>{
 
-/* INICIALIZAÇÃO */
+ if(playing){
+  pauseGame();
+ }else if(paused){
+  returnMenu();
+ }else{
+  $("menu").classList.remove("hidden");
+ }
+
+});
+
+$("resume").addEventListener("click",resumeGame);
+
+$("restart").addEventListener("click",startGame);
+
+$("backMenu").addEventListener("click",returnMenu);
+
+$("again").addEventListener("click",startGame);
+
+$("home").addEventListener("click",returnMenu);
+
+/* =====================================
+   INICIALIZAÇÃO
+===================================== */
 
 updateHUD();
 
-last=performance.now();
+resize();
 
-requestAnimationFrame(loop);
+requestAnimationFrame(timestamp=>{
+ lastTime=timestamp;
+ requestAnimationFrame(loop);
+});
 
 </script>
 
 </body>
- </html>
+</html>
