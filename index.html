@@ -1,1087 +1,662 @@
+(() => {
+  document.getElementById("boss-hunter")?.remove();
 
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#101b2b">
-<title>HOTEL HUNTER</title>
+  const root = document.createElement("div");
+  root.id = "boss-hunter";
+  root.style.cssText = `
+    position:fixed;inset:0;z-index:999999;
+    background:#081326;color:white;font-family:Arial;
+    overflow:hidden;
+  `;
 
-<style>
-* {
-  box-sizing: border-box;
-}
+  root.innerHTML = `
+    <canvas style="width:100%;height:100%;display:block;cursor:crosshair"></canvas>
 
-html, body {
-  margin: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: #101b2b;
-  font-family: Arial, sans-serif;
-  touch-action: none;
-}
-
-#game {
-  position: fixed;
-  inset: 0;
-  overflow: hidden;
-}
-
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-#hud {
-  position: absolute;
-  z-index: 3;
-  top: 10px;
-  left: 8px;
-  right: 8px;
-  display: flex;
-  gap: 5px;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.stat {
-  min-width: 0;
-  flex: 1;
-  text-align: center;
-  padding: 7px 4px;
-  background: #071426ed;
-  border: 1px solid #8295aa;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px #0007;
-}
-
-.stat small {
-  display: block;
-  color: #ff8295;
-  font-size: 9px;
-  font-weight: bold;
-  letter-spacing: .5px;
-  margin-bottom: 4px;
-}
-
-.stat b {
-  color: white;
-  font-size: 14px;
-}
-
-#logo {
-  position: absolute;
-  top: 75px;
-  left: 14px;
-  color: white;
-  z-index: 3;
-  text-shadow: 0 2px 5px #000;
-  pointer-events: none;
-}
-
-#logo small {
-  color: #ff8797;
-  font-size: 9px;
-  letter-spacing: 2px;
-  font-weight: bold;
-}
-
-#logo h1 {
-  font-size: 25px;
-  margin: 4px 0;
-}
-
-#logo span, .panel span {
-  color: #ff536f;
-}
-
-#phase {
-  position: absolute;
-  top: 135px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-  color: white;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  text-shadow: 0 2px 5px #000;
-  white-space: nowrap;
-}
-
-#progress {
-  height: 8px;
-  width: 180px;
-  margin-top: 6px;
-  background: #091729;
-  border: 1px solid #8295aa;
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-#fill {
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #ec3e61, #ffd27c);
-}
-
-#exit {
-  position: absolute;
-  right: 10px;
-  top: 10px;
-  z-index: 5;
-  padding: 9px 12px;
-  border-radius: 10px;
-  background: #10233b;
-  color: white;
-  border: 1px solid #8295aa;
-  font-weight: bold;
-}
-
-#message {
-  position: absolute;
-  z-index: 4;
-  top: 190px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90%, 400px);
-  padding: 12px;
-  background: #451425f2;
-  border: 1px solid #ff8196;
-  border-radius: 13px;
-  color: white;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  opacity: 0;
-  transition: opacity .2s;
-  pointer-events: none;
-}
-
-#instructions {
-  position: absolute;
-  z-index: 3;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(92%, 420px);
-  padding: 10px;
-  background: #050f1de8;
-  border: 1px solid #8295aa;
-  border-radius: 10px;
-  color: white;
-  text-align: center;
-  font-size: 10px;
-  line-height: 1.5;
-  pointer-events: none;
-}
-
-#fire {
-  position: absolute;
-  z-index: 6;
-  right: 18px;
-  bottom: 92px;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 3px solid #ffb0bc;
-  background: linear-gradient(145deg, #f45b76, #a51f40);
-  color: white;
-  font-size: 27px;
-  font-weight: bold;
-  box-shadow: 0 5px 18px #0008;
-  touch-action: none;
-}
-
-#menu {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #030a14c9;
-  backdrop-filter: blur(5px);
-}
-
-.panel {
-  width: 90%;
-  max-width: 430px;
-  padding: 28px 22px;
-  text-align: center;
-  background: linear-gradient(145deg, #193755, #071426);
-  border: 1px solid #8295aa;
-  border-radius: 20px;
-  box-shadow: 0 15px 60px #000b;
-  color: white;
-}
-
-.panel h2 {
-  font-size: 32px;
-  margin: 0 0 14px;
-}
-
-.panel p {
-  color: #dce5ee;
-  line-height: 1.65;
-  font-size: 14px;
-  margin: 0 0 20px;
-}
-
-.mainButton {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #ec4966, #98213f);
-  border: 1px solid #ff9baa;
-  border-radius: 12px;
-  color: white;
-  font-size: 15px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-@media(max-width:600px) {
-  #hud {
-    top: 46px;
-    gap: 3px;
-  }
-
-  .stat {
-    padding: 6px 2px;
-  }
-
-  .stat small {
-    font-size: 8px;
-  }
-
-  .stat b {
-    font-size: 12px;
-  }
-
-  #logo {
-    top: 100px;
-  }
-
-  #logo h1 {
-    font-size: 22px;
-  }
-
-  #phase {
-    top: 158px;
-  }
-
-  #message {
-    top: 205px;
-  }
-
-  #exit {
-    font-size: 10px;
-    padding: 7px 9px;
-  }
-
-  #fire {
-    width: 65px;
-    height: 65px;
-    bottom: 88px;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<div id="game">
-
-  <canvas id="canvas"></canvas>
-
-  <div id="logo">
-    <small>O HOTEL ESTÁ EM PERIGO</small>
-    <h1>HOTEL <span>HUNTER</span></h1>
-  </div>
-
-  <div id="hud">
-    <div class="stat">
-      <small>FASE</small>
-      <b id="level">1</b>
+    <div style="position:absolute;top:18px;left:20px;pointer-events:none">
+      <div style="font-size:11px;color:#ff6674;letter-spacing:4px">PREMIUM ARCADE</div>
+      <div style="font-size:28px;font-weight:900">BOSS <span style="color:#ff6674">HUNTER</span></div>
     </div>
 
-    <div class="stat">
-      <small>PONTOS</small>
-      <b id="points">0</b>
+    <div id="hud" style="position:absolute;right:15px;top:15px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end"></div>
+
+    <div id="intro" style="position:absolute;top:43%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none">
+      <div style="font-size:42px;font-weight:900">BOSS HUNTER</div>
+      <p style="color:#b9cde2">A cidade dos chefes espera por ti!</p>
+      <div style="color:#ff6978;letter-spacing:2px">CLICA PARA COMEÇAR</div>
     </div>
 
-    <div class="stat">
-      <small>RECORDE</small>
-      <b id="record">0</b>
+    <button id="exit" style="position:absolute;top:18px;left:50%;transform:translateX(-50%);padding:9px 15px;background:#172b46;color:white;border:1px solid #506782;border-radius:8px;cursor:pointer">✕ SAIR</button>
+
+    <div style="position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:12px;white-space:nowrap;color:#d4e6f5;pointer-events:none">
+      MOUSE PARA MIRAR · CLIQUE PARA DISPARAR · ESC PARA SAIR
     </div>
+  `;
 
-    <div class="stat">
-      <small>FLECHAS</small>
-      <b id="ammo">65</b>
-    </div>
+  document.body.appendChild(root);
 
-    <div class="stat">
-      <small>VIDAS</small>
-      <b id="lives">♥♥♥♥♥</b>
-    </div>
-  </div>
+  const canvas=root.querySelector("canvas");
+  const ctx=canvas.getContext("2d");
+  const hud=root.querySelector("#hud");
+  const intro=root.querySelector("#intro");
 
-  <div id="phase">
-    FASE 1 · 0/7
-    <div id="progress">
-      <div id="fill"></div>
-    </div>
-  </div>
+  let W,H,D,frame=0,last=0;
+  let running=false;
+  let score=0;
+  let arrows=45;
+  let lives=5;
+  let phase=1;
+  let combo=0;
+  let phaseKills=0;
+  let required=6;
+  let best=Number(localStorage.getItem("bossHunterRecord")||0);
+  let targets=[];
+  let shots=[];
+  let particles=[];
+  let transitioning=false;
 
-  <button id="exit" type="button">Ⅱ PAUSAR</button>
+  const mouse={x:0,y:0};
+  const bow={x:115,y:0};
 
-  <div id="message"></div>
+  const bosses=[
+    {skin:"#e9b58c",hair:"#28202b",suit:"#244e78",glasses:true,tie:"#e64e57"},
+    {skin:"#bd805e",hair:"#171a23",suit:"#424b5c",glasses:false,tie:"#e8bd46"},
+    {skin:"#f2c99d",hair:"#b8a078",suit:"#3d6b57",glasses:true,tie:"#56b6d5"},
+    {skin:"#d99c79",hair:"#33251e",suit:"#61416c",glasses:false,tie:"#d75e63"},
+    {skin:"#edc6a0",hair:"#454545",suit:"#34404e",glasses:true,tie:"#e5a34a"},
+    {skin:"#d8a27c",hair:"#211a17",suit:"#795044",glasses:false,tie:"#65a7d9"}
+  ];
 
-  <button id="fire" type="button" aria-label="Disparar">➤</button>
+  const rand=(a,b)=>a+Math.random()*(b-a);
 
-  <div id="instructions">
-    APONTA COM O RATO OU TOCA NO ECRÃ · DISPARA NO BOTÃO ➤
-    <br>
-    ESPAÇO PARA ATIRAR · ESC PARA PAUSAR
-  </div>
-
-  <div id="menu">
-    <div class="panel" id="panel">
-      <h2>HOTEL <span>HUNTER</span></h2>
-
-      <p>
-        Bem-vindo ao hotel!
-        <br>
-        A receção está cheia de problemas e os hóspedes estão furiosos.
-        <br><br>
-        Acerta nos hóspedes antes que saiam do lobby.
-        Cada acerto vale 100 pontos!
-      </p>
-
-      <button class="mainButton" id="start" type="button">
-        COMEÇAR JOGO
-      </button>
-    </div>
-  </div>
-
-</div>
-
-<script>
-"use strict";
-
-const $ = id => document.getElementById(id);
-
-const canvas = $("canvas");
-const ctx = canvas.getContext("2d");
-
-let W = 0;
-let H = 0;
-let dpr = 1;
-let last = 0;
-let running = false;
-let paused = false;
-
-let phase = 1;
-let score = 0;
-let best = 0;
-let lives = 5;
-let ammo = 65;
-let kills = 0;
-let needed = 7;
-
-let guests = [];
-let arrows = [];
-let particles = [];
-
-let time = 0;
-let spawnTimer = 0;
-let noticeTimer = 0;
-
-const pointer = {
-  x: 0,
-  y: 0
-};
-
-const skins = [
-  ["#e9b58c", "#211b20", "#274d79"],
-  ["#c68a68", "#3b2922", "#61436e"],
-  ["#f0c69e", "#ac8659", "#28604c"],
-  ["#d9a17f", "#1e1c27", "#743c48"],
-  ["#efbd92", "#382d27", "#385e77"]
-];
-
-const complaints = [
-  "O LOBBY CHEIRA A ESGOTO!",
-  "QUE CHEIRO HORRÍVEL!",
-  "O AR CONDICIONADO ESTÁ AVARIADO!",
-  "A MÁQUINA DE CAFÉ NÃO FUNCIONA!",
-  "QUERO FALAR COM A GERÊNCIA!",
-  "ESTE HOTEL PRECISA DE LIMPEZA!",
-  "NÃO HÁ CAFÉ NA RECEÇÃO!",
-  "ESTÁ MUITO CALOR NO LOBBY!"
-];
-
-try {
-  best = Number(localStorage.getItem("hotelHunterRecord")) || 0;
-} catch(e) {
-  best = 0;
-}
-
-function resize() {
-  W = window.innerWidth;
-  H = window.innerHeight;
-
-  dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-  canvas.width = Math.round(W * dpr);
-  canvas.height = Math.round(H * dpr);
-
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  pointer.x = W * .72;
-  pointer.y = H * .55;
-}
-
-window.addEventListener("resize", resize);
-resize();
-
-function rect(x, y, w, h, c) {
-  ctx.fillStyle = c;
-  ctx.fillRect(x, y, w, h);
-}
-
-function ellipse(x, y, rx, ry, c) {
-  ctx.fillStyle = c;
-  ctx.beginPath();
-  ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function rounded(x, y, w, h, r, c) {
-  ctx.fillStyle = c;
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, r);
-  ctx.fill();
-}
-
-function line(x1, y1, x2, y2, c, w = 2) {
-  ctx.strokeStyle = c;
-  ctx.lineWidth = w;
-  ctx.beginPath();
-  ctx.moveTo(x1, y1);
-  ctx.lineTo(x2, y2);
-  ctx.stroke();
-}
-
-function drawRoom() {
-  const wall = ctx.createLinearGradient(0, 0, W, 0);
-
-  wall.addColorStop(0, "#50230f");
-  wall.addColorStop(.5, "#a05227");
-  wall.addColorStop(1, "#3b1b10");
-
-  rect(0, 0, W, H, wall);
-
-  for (let x = 0; x < W; x += 75) {
-    rect(x, 0, 3, H * .65, "#3c1b10");
+  function resize(){
+    W=innerWidth;
+    H=innerHeight;
+    D=Math.min(devicePixelRatio||1,2);
+    canvas.width=W*D;
+    canvas.height=H*D;
+    ctx.setTransform(D,0,0,D,0,0);
+    bow.y=H*.70;
   }
 
-  rounded(W * .77, H * .18, W * .19, H * .43, 8, "#24140f");
-  rounded(W * .78, H * .20, W * .17, H * .39, 5, "#482719");
+  resize();
+  addEventListener("resize",resize);
 
-  ctx.fillStyle = "#f4d49b";
-  ctx.font = "bold 11px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("ÁREA PRIVADA", W * .865, H * .16);
+  function drawBuilding(x,w,h,color,id){
+    const y=H-h;
+    ctx.fillStyle=color;
+    ctx.fillRect(x,y,w,h);
 
-  const floor = ctx.createLinearGradient(0, H * .62, 0, H);
-
-  floor.addColorStop(0, "#6d4834");
-  floor.addColorStop(1, "#d7c5ae");
-
-  rect(0, H * .62, W, H * .38, floor);
-
-  for (let i = 0; i < 6; i++) {
-    line(0, H * (.67 + i * .055), W, H * (.67 + i * .055), "#795c49", 1);
-  }
-
-  rounded(W * .18, H * .53, W * .75, H * .30, 8, "#754022");
-  rounded(W * .17, H * .51, W * .77, 18, 5, "#d5a06a");
-
-  rect(W * .18, H * .81, W * .75, 5, "#f3d19b");
-
-  drawComputer(W * .68, H * .45);
-  drawComputer(W * .42, H * .46);
-
-  drawBag(W * .28, H * .49, .65, "#68432f");
-  drawBag(W * .36, H * .49, .52, "#304d69");
-
-  ellipse(W * .08, H * .56, 22, 30, "#27513c");
-  ellipse(W * .11, H * .53, 18, 32, "#386c43");
-
-  rect(W * .065, H * .59, 28, 45, "#815235");
-
-  drawPerson(
-    W * .53,
-    H * .51,
-    Math.min(78, H * .10),
-    "#d8a17f",
-    "#252027",
-    "#253d5d",
-    false
-  );
-
-  drawPerson(
-    W * .84,
-    H * .51,
-    Math.min(76, H * .10),
-    "#e9b58c",
-    "#452a26",
-    "#593c67",
-    false
-  );
-}
-
-function drawComputer(x, y) {
-  rounded(x, y, 75, 48, 4, "#151b21");
-  rounded(x + 5, y + 5, 65, 35, 2, "#34404b");
-
-  ctx.fillStyle = "#aebbc5";
-  ctx.font = "bold 10px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText("HOTEL", x + 37, y + 27);
-
-  rect(x + 32, y + 48, 12, 9, "#252b31");
-  rect(x + 18, y + 57, 40, 4, "#22282e");
-}
-
-function drawBag(x, y, s, c) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(s, s);
-
-  rounded(-22, -58, 44, 62, 6, c);
-
-  ctx.strokeStyle = "#d8b67c";
-  ctx.lineWidth = 3;
-  ctx.strokeRect(-17, -53, 34, 51);
-
-  line(-8, -58, -8, -67, "#d8b67c", 4);
-  line(8, -58, 8, -67, "#d8b67c", 4);
-
-  ellipse(-11, 6, 4, 4, "#171717");
-  ellipse(11, 6, 4, 4, "#171717");
-
-  ctx.restore();
-}
-
-function drawPerson(x, y, s, skin, hair, clothes, angry = true) {
-  ctx.save();
-  ctx.translate(x, y);
-
-  ellipse(0, s * .88, s * .38, s * .08, "#0005");
-
-  line(-s * .13, s * .43, -s * .17, s * .85, "#25252b", s * .13);
-  line(s * .13, s * .43, s * .17, s * .85, "#25252b", s * .13);
-
-  rounded(-s * .32, -s * .03, s * .64, s * .50, 7, clothes);
-
-  rect(-s * .08, -s * .18, s * .16, s * .18, skin);
-
-  ellipse(0, -s * .38, s * .32, s * .37, skin);
-  ellipse(0, -s * .64, s * .34, s * .17, hair);
-
-  rect(-s * .33, -s * .62, s * .11, s * .28, hair);
-
-  ellipse(-s * .12, -s * .39, s * .06, s * .07, "white");
-  ellipse(s * .12, -s * .39, s * .06, s * .07, "white");
-
-  ellipse(-s * .12, -s * .39, s * .03, s * .04, "#191919");
-  ellipse(s * .12, -s * .39, s * .03, s * .04, "#191919");
-
-  if (angry) {
-    line(-s * .22, -s * .53, -s * .07, -s * .49, "#693c34", 2);
-    line(s * .07, -s * .49, s * .22, -s * .53, "#693c34", 2);
-    line(-s * .08, -s * .20, s * .08, -s * .20, "#693c34", 2);
-  } else {
-    line(-s * .08, -s * .25, s * .08, -s * .25, "#693c34", 2);
-  }
-
-  ctx.restore();
-}
-</script>
-
-function createGuest() {
-  const sk = skins[Math.floor(Math.random() * skins.length)];
-
-  guests.push({
-    x: W + 45,
-    y: H * .66 + Math.random() * H * .12,
-    size: Math.min(72, H * .09),
-    speed: .7 + Math.random() * .5 + phase * .04,
-    skin: sk,
-    complaint: complaints[Math.floor(Math.random() * complaints.length)],
-    bubble: 100
-  });
-}
-
-function bubble(x, y, t) {
-  ctx.save();
-
-  ctx.font = "bold 10px Arial";
-
-  const w = Math.min(W * .6, ctx.measureText(t).width + 18);
-  const px = Math.max(5, Math.min(W - w - 5, x - w / 2));
-
-  rounded(px, y - 31, w, 27, 8, "#fff8e9");
-
-  ctx.fillStyle = "#38251e";
-  ctx.textAlign = "center";
-  ctx.fillText(t, px + w / 2, y - 13);
-
-  ctx.restore();
-}
-
-function drawGuests() {
-  for (const g of guests) {
-    drawPerson(
-      g.x,
-      g.y,
-      g.size,
-      g.skin[0],
-      g.skin[1],
-      g.skin[2],
-      true
-    );
-
-    if (g.bubble > 0) {
-      bubble(g.x, g.y - g.size * .65, g.complaint);
+    for(let xx=x+10;xx<x+w-7;xx+=21){
+      for(let yy=y+14;yy<H-12;yy+=26){
+        ctx.fillStyle=Math.sin(xx*12+yy*5+id)>-.25
+          ?"#f5c66e":"#243a56";
+        ctx.fillRect(xx,yy,8,12);
+      }
     }
   }
-}
 
-function shoot() {
-  if (!running) return;
+  function background(){
+    const sky=ctx.createLinearGradient(0,0,0,H);
+    sky.addColorStop(0,"#09152c");
+    sky.addColorStop(.55,"#293e61");
+    sky.addColorStop(1,"#bd7165");
+    ctx.fillStyle=sky;
+    ctx.fillRect(0,0,W,H);
 
-  if (ammo <= 0) {
-    showMessage("SEM FLECHAS!");
-    return;
+    ctx.fillStyle="#ffe9b8";
+    ctx.shadowColor="#ffe4a1";
+    ctx.shadowBlur=30;
+    ctx.beginPath();
+    ctx.arc(W*.82,H*.15,31,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+
+    for(let i=0;i<60;i++){
+      ctx.globalAlpha=.3+Math.sin(frame*.03+i)*.2;
+      ctx.fillStyle="white";
+      ctx.fillRect((i*173)%W,(i*83)%(H*.4),2,2);
+    }
+    ctx.globalAlpha=1;
+
+    for(let i=0;i<15;i++){
+      drawBuilding(i*W/13-25,W/13+12,
+        H*(.18+(Math.sin(i*19)+1)*.10),"#1b2e4b",i);
+    }
+
+    for(let i=0;i<10;i++){
+      drawBuilding(i*W/8-20,W/8+12,
+        H*(.23+(Math.sin(i*17)+1)*.12),"#111e34",i+30);
+    }
+
+    const ground=ctx.createLinearGradient(0,H*.78,0,H);
+    ground.addColorStop(0,"#294354");
+    ground.addColorStop(1,"#071321");
+    ctx.fillStyle=ground;
+    ctx.fillRect(0,H*.78,W,H*.22);
   }
 
-  ammo--;
-
-  const ox = W * .12;
-  const oy = H * .78;
-
-  const ang = Math.atan2(
-    pointer.y - oy,
-    pointer.x - ox
-  );
-
-  arrows.push({
-    x: ox,
-    y: oy,
-    vx: Math.cos(ang) * 15,
-    vy: Math.sin(ang) * 15,
-    life: 100
-  });
-
-  hud();
-}
-
-function drawBow() {
-  ctx.save();
-
-  ctx.translate(W * .12, H * .78);
-
-  ctx.rotate(
-    Math.atan2(
-      pointer.y - H * .78,
-      pointer.x - W * .12
-    )
-  );
-
-  ctx.strokeStyle = "#e8b66f";
-  ctx.lineWidth = 7;
-
-  ctx.beginPath();
-  ctx.arc(0, 0, 32, -1.15, 1.15);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawArrows() {
-  for (const a of arrows) {
+  function drawFace(t){
+    const r=t.r,b=t.boss;
     ctx.save();
+    ctx.translate(t.x,t.y);
 
-    ctx.translate(a.x, a.y);
+    ctx.shadowColor="#ff555f";
+    ctx.shadowBlur=15;
+    ctx.fillStyle="#f2e9d8";
+    ctx.beginPath();
+    ctx.arc(0,0,r,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
 
-    ctx.rotate(Math.atan2(a.vy, a.vx));
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0,0,r*.91,0,Math.PI*2);
+    ctx.clip();
 
-    line(-17, 0, 19, 0, "#f1d29a", 4);
+    // Fato
+    ctx.fillStyle=b.suit;
+    ctx.beginPath();
+    ctx.moveTo(-r*.9,r*.35);
+    ctx.lineTo(-r*.6,0);
+    ctx.lineTo(0,r*.18);
+    ctx.lineTo(r*.6,0);
+    ctx.lineTo(r*.9,r*.35);
+    ctx.lineTo(r,r);
+    ctx.lineTo(-r,r);
+    ctx.closePath();
+    ctx.fill();
 
-    ctx.fillStyle = "#ffd17d";
+    // Camisa
+    ctx.fillStyle="white";
+    ctx.beginPath();
+    ctx.moveTo(-r*.3,r*.2);
+    ctx.lineTo(0,r*.65);
+    ctx.lineTo(r*.3,r*.2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Gravata
+    ctx.fillStyle=b.tie;
+    ctx.beginPath();
+    ctx.moveTo(-r*.09,r*.23);
+    ctx.lineTo(r*.09,r*.23);
+    ctx.lineTo(r*.13,r*.7);
+    ctx.lineTo(0,r*.85);
+    ctx.lineTo(-r*.13,r*.7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pescoço
+    ctx.fillStyle=b.skin;
+    ctx.fillRect(-r*.17,r*.03,r*.34,r*.3);
+
+    // Cara
+    ctx.fillStyle=b.skin;
+    ctx.beginPath();
+    ctx.ellipse(0,-r*.16,r*.47,r*.54,0,0,Math.PI*2);
+    ctx.fill();
+
+    // Orelhas
+    ctx.beginPath();
+    ctx.ellipse(-r*.48,-r*.1,r*.1,r*.16,0,0,Math.PI*2);
+    ctx.ellipse(r*.48,-r*.1,r*.1,r*.16,0,0,Math.PI*2);
+    ctx.fill();
+
+    // Cabelo
+    ctx.fillStyle=b.hair;
+    ctx.beginPath();
+    ctx.ellipse(0,-r*.44,r*.49,r*.25,0,Math.PI,Math.PI*2);
+    ctx.fill();
 
     ctx.beginPath();
-    ctx.moveTo(24, 0);
-    ctx.lineTo(13, -5);
-    ctx.lineTo(13, 5);
+    ctx.moveTo(-r*.48,-r*.32);
+    ctx.lineTo(-r*.43,-r*.59);
+    ctx.lineTo(-r*.15,-r*.48);
+    ctx.lineTo(r*.12,-r*.56);
+    ctx.lineTo(r*.45,-r*.38);
+    ctx.lineTo(r*.45,-r*.25);
+    ctx.closePath();
+    ctx.fill();
+
+    // Olhos
+    ctx.fillStyle="white";
+    ctx.beginPath();
+    ctx.ellipse(-r*.2,-r*.13,r*.12,r*.09,0,0,Math.PI*2);
+    ctx.ellipse(r*.2,-r*.13,r*.12,r*.09,0,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="#25252c";
+    ctx.beginPath();
+    ctx.arc(-r*.2,-r*.13,r*.045,0,Math.PI*2);
+    ctx.arc(r*.2,-r*.13,r*.045,0,Math.PI*2);
+    ctx.fill();
+
+    // Óculos
+    if(b.glasses){
+      ctx.strokeStyle="#252c39";
+      ctx.lineWidth=2;
+      ctx.strokeRect(-r*.35,-r*.25,r*.28,r*.22);
+      ctx.strokeRect(r*.07,-r*.25,r*.28,r*.22);
+      ctx.beginPath();
+      ctx.moveTo(-r*.07,-r*.14);
+      ctx.lineTo(r*.07,-r*.14);
+      ctx.stroke();
+    }
+
+    // Nariz e boca
+    ctx.strokeStyle="#a76d54";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(0,-r*.1);
+    ctx.lineTo(-r*.03,r*.07);
+    ctx.lineTo(r*.07,r*.08);
+    ctx.stroke();
+
+    ctx.strokeStyle="#773f3a";
+    ctx.beginPath();
+    ctx.arc(0,r*.15,r*.13,.15,Math.PI-.15);
+    ctx.stroke();
+
+    ctx.restore();
+
+    ctx.strokeStyle="#fff";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.arc(0,0,r*.96,0,Math.PI*2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function spawnTarget(){
+    targets.push({
+      id:Math.random(),
+      x:W+60,
+      y:rand(H*.24,H*.61),
+      r:rand(34,44),
+      speed:rand(1.1,2.2)+phase*.12,
+      phase:rand(0,10),
+      boss:bosses[Math.floor(Math.random()*bosses.length)]
+    });
+  }
+
+  function drawBow(){
+    const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
+    ctx.save();
+    ctx.translate(bow.x,bow.y);
+    ctx.rotate(a);
+
+    ctx.strokeStyle="#d99d56";
+    ctx.lineWidth=7;
+    ctx.beginPath();
+    ctx.arc(0,0,55,-1.12,1.12);
+    ctx.stroke();
+
+    ctx.strokeStyle="#fff0cf";
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(24,-47);
+    ctx.lineTo(-15,0);
+    ctx.lineTo(24,47);
+    ctx.stroke();
+
+    ctx.strokeStyle="#81522f";
+    ctx.lineWidth=9;
+    ctx.beginPath();
+    ctx.moveTo(-5,-13);
+    ctx.lineTo(-5,13);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawArrow(p){
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(p.angle);
+
+    ctx.shadowColor="#ff505e";
+    ctx.shadowBlur=10;
+    ctx.strokeStyle="#dfc08c";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(-28,0);
+    ctx.lineTo(25,0);
+    ctx.stroke();
+
+    ctx.fillStyle="#d8eaff";
+    ctx.beginPath();
+    ctx.moveTo(34,0);
+    ctx.lineTo(20,-6);
+    ctx.lineTo(20,6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle="#ff5261";
+    ctx.beginPath();
+    ctx.moveTo(-23,0);
+    ctx.lineTo(-34,-8);
+    ctx.lineTo(-18,0);
+    ctx.lineTo(-34,8);
+    ctx.closePath();
     ctx.fill();
 
     ctx.restore();
   }
-}
 
-function burst(x, y) {
-  for (let i = 0; i < 12; i++) {
-    const a = Math.random() * Math.PI * 2;
-    const v = 1 + Math.random() * 3;
+  // Partículas vermelhas estilizadas
+  function splash(x,y,power=1){
+    for(let i=0;i<18*power;i++){
+      const a=rand(0,Math.PI*2);
+      const s=rand(1.5,6)*power;
 
-    particles.push({
-      x,
-      y,
-      vx: Math.cos(a) * v,
-      vy: Math.sin(a) * v,
-      life: 24,
-      color: i % 2 ? "#ff687b" : "#f4cb81"
+      particles.push({
+        x,y,
+        vx:Math.cos(a)*s,
+        vy:Math.sin(a)*s,
+        life:rand(20,38),
+        max:38,
+        size:rand(2,6),
+        color:["#ff414e","#e72e43","#ff6872","#c91f3a"][Math.floor(Math.random()*4)]
+      });
+    }
+  }
+
+  function drawParticles(){
+    particles.forEach(p=>{
+      ctx.globalAlpha=Math.max(0,p.life/p.max);
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fill();
     });
+    ctx.globalAlpha=1;
   }
-}
 
-function update(dt) {
-  if (!running) return;
+  function updateHUD(){
+    const values=[
+      ["FASE",phase],
+      ["PONTOS",score],
+      ["RECORDE",best],
+      ["FLECHAS",arrows],
+      ["VIDAS","♥ ".repeat(lives)]
+    ];
 
-  time += dt;
-  spawnTimer += dt;
+    hud.innerHTML=values.map(v=>`
+      <div style="background:#101e37ed;border:1px solid #45617c;padding:9px 12px;border-radius:9px;min-width:62px">
+        <div style="font-size:9px;color:#ff8b94;letter-spacing:1px">${v[0]}</div>
+        <div style="font-size:19px;font-weight:bold;margin-top:4px">${v[1]}</div>
+      </div>
+    `).join("");
+  }
 
-  // Movimento dos hóspedes
-  for (let i = guests.length - 1; i >= 0; i--) {
-    const g = guests[i];
+  function startGame(){
+    score=0;
+    arrows=45;
+    lives=5;
+    phase=1;
+    combo=0;
+    phaseKills=0;
+    required=6;
+    targets=[];
+    shots=[];
+    particles=[];
+    running=true;
+    transitioning=false;
+    intro.style.display="none";
 
-    g.x -= g.speed * dt;
-    g.bubble -= dt;
+    spawnTarget();
+    spawnTarget();
+    updateHUD();
+  }
 
-    if (g.bubble <= 0) {
-      g.bubble = 150 + Math.random() * 80;
+  function showPhase(){
+    transitioning=true;
+    intro.style.display="block";
+    intro.innerHTML=`
+      <div style="font-size:15px;color:#ff7880;letter-spacing:4px">FASE COMPLETADA</div>
+      <div style="font-size:48px;font-weight:900;margin:12px">FASE ${phase}</div>
+      <div style="color:#d4e8f8">Prepara-te para o próximo desafio!</div>
+    `;
+
+    setTimeout(()=>{
+      if(!running)return;
+      transitioning=false;
+      intro.style.display="none";
+      for(let i=0;i<Math.min(phase+1,5);i++)spawnTarget();
+    },1800);
+  }
+
+  function nextPhase(){
+    if(phaseKills>=required){
+      phase++;
+      phaseKills=0;
+      required=6+phase*2;
+      arrows+=15;
+      lives=Math.min(5,lives+1);
+      updateHUD();
+      showPhase();
     }
+  }
 
-    // Cliente saiu do hotel
-    if (g.x < -g.size) {
-      guests.splice(i, 1);
+  function shoot(){
+    if(!running||arrows<=0||transitioning)return;
 
-      lives--;
+    arrows--;
+    const a=Math.atan2(mouse.y-bow.y,mouse.x-bow.x);
 
-      showMessage("UM CLIENTE SAIU INSATISFEITO!");
+    shots.push({
+      x:bow.x+Math.cos(a)*60,
+      y:bow.y+Math.sin(a)*60,
+      vx:Math.cos(a)*17,
+      vy:Math.sin(a)*17,
+      angle:a,
+      life:120,
+      hitIds:new Set(),
+      pierce:2+Math.floor(phase/2)
+    });
 
-      hud();
+    splash(bow.x+Math.cos(a)*45,bow.y+Math.sin(a)*45);
+    updateHUD();
 
-      if (lives <= 0) {
-        gameOver();
-        return;
+    if(arrows===0){
+      setTimeout(()=>{
+        if(running&&arrows===0)endGame();
+      },1800);
+    }
+  }
+
+  function endGame(){
+    running=false;
+    intro.style.display="block";
+    intro.innerHTML=`
+      <div style="font-size:40px;font-weight:900">FIM DE JOGO</div>
+      <div style="font-size:29px;color:#ff6875;margin:14px">${score} PONTOS</div>
+      <div>Fase alcançada: ${phase}</div>
+      <div style="color:#ff7d87;margin-top:20px">CLICA PARA VOLTAR A JOGAR</div>
+    `;
+  }
+
+  function update(dt){
+    frame++;
+
+    if(running&&!transitioning){
+
+      if(frame%Math.max(35,100-phase*5)===0&&targets.length<Math.min(5+phase,10)){
+        spawnTarget();
       }
-    }
-  }
 
-  // Movimento e colisão das flechas
-  for (let i = arrows.length - 1; i >= 0; i--) {
-    const a = arrows[i];
+      targets.forEach(t=>{
+        t.x-=t.speed*dt;
+        t.y+=Math.sin(frame*.025+t.phase)*.35*dt;
+      });
 
-    a.x += a.vx * dt;
-    a.y += a.vy * dt;
-    a.life -= dt;
+      targets=targets.filter(t=>{
+        if(t.x < -t.r){
+          lives--;
+          combo=0;
+          updateHUD();
+          if(lives<=0)endGame();
+          return false;
+        }
+        return true;
+      });
 
-    let hit = false;
+      shots.forEach(p=>{
+        p.x+=p.vx*dt;
+        p.y+=p.vy*dt;
+        p.vy+=.08*dt;
+        p.angle=Math.atan2(p.vy,p.vx);
+        p.life--;
 
-    for (let j = guests.length - 1; j >= 0; j--) {
-      const g = guests[j];
+        if(frame%2===0){
+          particles.push({
+            x:p.x-rand(0,12),
+            y:p.y+rand(-3,3),
+            vx:rand(-.5,.5),
+            vy:rand(-.5,.5),
+            life:18,
+            max:18,
+            size:rand(2,4),
+            color:"#ff626e"
+          });
+        }
 
-      const distance = Math.hypot(
-        a.x - g.x,
-        a.y - (g.y - g.size * .35)
+        // Flecha perfurante: pode atravessar vários alvos
+        for(let i=targets.length-1;i>=0;i--){
+          const t=targets[i];
+
+          if(p.hitIds.has(t.id))continue;
+
+          if(Math.hypot(p.x-t.x,p.y-t.y)<t.r){
+            p.hitIds.add(t.id);
+            p.pierce--;
+
+            score+=100+combo*15;
+            combo++;
+            phaseKills++;
+
+            splash(t.x,t.y,1.4);
+            targets.splice(i,1);
+
+            if(score>best){
+              best=score;
+              localStorage.setItem("bossHunterRecord",best);
+            }
+
+            if(p.pierce<=0)p.life=0;
+
+            updateHUD();
+            nextPhase();
+
+            if(transitioning)break;
+          }
+        }
+      });
+
+      shots=shots.filter(p=>
+        p.life>0&&p.x<W+70&&p.x>-70&&p.y<H+70&&p.y>-70
       );
-
-      if (distance < g.size * .48) {
-        guests.splice(j, 1);
-
-        score += 100;
-        kills++;
-
-        burst(a.x, a.y);
-
-        hit = true;
-
-        if (score > best) {
-          best = score;
-
-          try {
-            localStorage.setItem(
-              "hotelHunterRecord",
-              String(best)
-            );
-          } catch(e) {}
-        }
-
-        if (kills >= needed) {
-          nextPhase();
-        }
-
-        showMessage("RECLAMAÇÃO RESOLVIDA! +100");
-
-        hud();
-
-        break;
-      }
     }
 
-    if (
-      hit ||
-      a.life <= 0 ||
-      a.x > W + 40 ||
-      a.y > H + 40 ||
-      a.y < -40
-    ) {
-      arrows.splice(i, 1);
-    }
+    particles.forEach(p=>{
+      p.x+=p.vx*dt;
+      p.y+=p.vy*dt;
+      p.vy+=.04*dt;
+      p.life-=dt;
+    });
+
+    particles=particles.filter(p=>p.life>0);
   }
 
-  // Partículas
-  for (const p of particles) {
-    p.x += p.vx * dt;
-    p.y += p.vy * dt;
-    p.vy += .08 * dt;
-    p.life -= dt;
-  }
+  function draw(){
+    background();
 
-  particles = particles.filter(p => p.life > 0);
+    targets.forEach(drawFace);
+    shots.forEach(drawArrow);
+    drawParticles();
+    drawBow();
 
-  // Entrada de novos hóspedes
-  if (spawnTimer > 115 && guests.length < 8) {
-    createGuest();
-    spawnTimer = 0;
-  }
-}
-
-function draw() {
-  ctx.clearRect(0, 0, W, H);
-
-  drawRoom();
-  drawGuests();
-  drawArrows();
-
-  // Efeitos visuais
-  for (const p of particles) {
-    ctx.globalAlpha = Math.max(0, p.life / 24);
-    ellipse(p.x, p.y, 3, 3, p.color);
-  }
-
-  ctx.globalAlpha = 1;
-
-  drawBow();
-
-  // Mira
-  if (running) {
-    ctx.strokeStyle = "#ff607b";
-    ctx.lineWidth = 2;
-
+    // Mira
+    ctx.strokeStyle="#ff6571";
+    ctx.lineWidth=1.5;
+    ctx.shadowColor="#ff4c5c";
+    ctx.shadowBlur=8;
     ctx.beginPath();
-
-    ctx.arc(pointer.x, pointer.y, 13, 0, Math.PI * 2);
-
-    ctx.moveTo(pointer.x - 19, pointer.y);
-    ctx.lineTo(pointer.x + 19, pointer.y);
-
-    ctx.moveTo(pointer.x, pointer.y - 19);
-    ctx.lineTo(pointer.x, pointer.y + 19);
-
+    ctx.arc(mouse.x,mouse.y,13,0,Math.PI*2);
+    ctx.moveTo(mouse.x-22,mouse.y);
+    ctx.lineTo(mouse.x-5,mouse.y);
+    ctx.moveTo(mouse.x+5,mouse.y);
+    ctx.lineTo(mouse.x+22,mouse.y);
+    ctx.moveTo(mouse.x,mouse.y-22);
+    ctx.lineTo(mouse.x,mouse.y-5);
+    ctx.moveTo(mouse.x,mouse.y+5);
+    ctx.lineTo(mouse.x,mouse.y+22);
     ctx.stroke();
-  }
-}
+    ctx.shadowBlur=0;
 
-function hud() {
-  $("level").textContent = phase;
-  $("points").textContent = score;
-  $("record").textContent = best;
-  $("ammo").textContent = ammo;
-
-  $("lives").textContent = "♥".repeat(
-    Math.max(0, lives)
-  );
-
-  $("phase").childNodes[0].textContent =
-    `FASE ${phase} · ${kills}/${needed}`;
-
-  $("fill").style.width =
-    Math.min(100, kills / needed * 100) + "%";
-}
-
-function showMessage(t) {
-  $("message").textContent = t;
-  $("message").style.opacity = 1;
-
-  clearTimeout(noticeTimer);
-
-  noticeTimer = setTimeout(() => {
-    $("message").style.opacity = 0;
-  }, 1800);
-}
-
-function nextPhase() {
-  phase++;
-
-  kills = 0;
-
-  needed = 7 + phase * 2;
-
-  ammo += 25;
-
-  lives = Math.min(5, lives + 1);
-
-  hud();
-
-  showMessage("NOVA FASE! O HOTEL PRECISA DE TI!");
-}
-
-function startGame() {
-  phase = 1;
-  score = 0;
-  lives = 5;
-  ammo = 65;
-  kills = 0;
-  needed = 7;
-
-  guests = [];
-  arrows = [];
-  particles = [];
-
-  spawnTimer = 0;
-  time = 0;
-
-  running = true;
-  paused = false;
-
-  $("menu").style.display = "none";
-
-  createGuest();
-  createGuest();
-
-  hud();
-
-  showMessage("BEM-VINDO AO HOTEL!");
-}
-
-function showMenu(title, body, button, action) {
-  $("menu").style.display = "flex";
-
-  $("panel").innerHTML = `
-    <h2>${title}</h2>
-    <p>${body}</p>
-    <button class="mainButton" id="menuAction" type="button">
-      ${button}
-    </button>
-  `;
-
-  $("menuAction").onclick = action;
-}
-
-function pauseGame() {
-  if (!running) return;
-
-  running = false;
-  paused = true;
-
-  showMenu(
-    'JOGO <span>PAUSADO</span>',
-    'A receção está à tua espera!',
-    'CONTINUAR',
-    () => {
-      paused = false;
-      running = true;
-
-      $("menu").style.display = "none";
+    if(combo>1&&running){
+      ctx.textAlign="center";
+      ctx.fillStyle="#ffdc83";
+      ctx.font="bold 22px Arial";
+      ctx.fillText("COMBO x"+combo,W/2,110);
+      ctx.textAlign="left";
     }
-  );
-}
 
-function gameOver() {
-  running = false;
-  paused = false;
+    if(running){
+      const progress=Math.min(1,phaseKills/required);
+      ctx.fillStyle="#152a42";
+      ctx.fillRect(W/2-105,22,210,7);
+      ctx.fillStyle="#ff626f";
+      ctx.fillRect(W/2-105,22,210*progress,7);
+      ctx.fillStyle="white";
+      ctx.font="11px Arial";
+      ctx.textAlign="center";
+      ctx.fillText("PROGRESSO DA FASE",W/2,16);
+      ctx.textAlign="left";
+    }
+  }
 
-  showMenu(
-    'FIM DE <span>JOGO</span>',
-    `O hotel ficou sem vidas!<br><br>
-     PONTOS: ${score}<br>
-     FASE: ${phase}<br>
-     RECORDE: ${best}`,
-    'JOGAR NOVAMENTE',
-    startGame
-  );
-}
+  function loop(time){
+    const dt=Math.min((time-last)/16.67||1,2);
+    last=time;
+    update(dt);
+    draw();
+    if(root.isConnected)requestAnimationFrame(loop);
+  }
 
-// Ciclo principal
-function loop(now) {
-  const dt = Math.min(
-    (now - last) / 16.667 || 1,
-    2
-  );
+  canvas.addEventListener("mousemove",e=>{
+    const r=canvas.getBoundingClientRect();
+    mouse.x=e.clientX-r.left;
+    mouse.y=e.clientY-r.top;
+  });
 
-  last = now;
+  canvas.addEventListener("click",()=>{
+    if(!running)startGame();
+    else shoot();
+  });
 
-  update(dt);
-  draw();
+  const esc=e=>{
+    if(e.key==="Escape"){
+      running=false;
+      root.remove();
+      removeEventListener("resize",resize);
+      removeEventListener("keydown",esc);
+    }
+  };
 
+  addEventListener("keydown",esc);
+
+  root.querySelector("#exit").onclick=()=>{
+    running=false;
+    root.remove();
+    removeEventListener("resize",resize);
+    removeEventListener("keydown",esc);
+  };
+
+  mouse.x=W*.6;
+  mouse.y=H*.4;
+
+  updateHUD();
   requestAnimationFrame(loop);
-}
-
-// Controlos do rato e do toque
-function setPointer(e) {
-  const r = canvas.getBoundingClientRect();
-
-  pointer.x = e.clientX - r.left;
-  pointer.y = e.clientY - r.top;
-}
-
-canvas.addEventListener("pointermove", setPointer);
-
-canvas.addEventListener("pointerdown", e => {
-  setPointer(e);
-
-  if (running) {
-    shoot();
-  }
-});
-
-// Botão de disparo
-$("fire").addEventListener("pointerdown", e => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  shoot();
-});
-
-// Botões principais
-$("start").onclick = startGame;
-$("exit").onclick = pauseGame;
-
-// Teclado
-window.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    e.preventDefault();
-    shoot();
-  }
-
-  if (e.key === "Escape") {
-    pauseGame();
-  }
-});
-
-// Inicialização
-hud();
-
-requestAnimationFrame(loop);
-
-</script>
-</body>
-</html>
+})();
