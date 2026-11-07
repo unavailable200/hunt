@@ -124,7 +124,7 @@ function updateHud(){hud.innerHTML=[["PONTOS",score],["FLECHAS",arrows],["FASE",
 
 function drawBackground(){ctx.fillStyle="#3b2416";ctx.fillRect(0,0,W,H);if(bg.complete&&bg.naturalWidth){const scale=Math.max(W/bg.naturalWidth,H/bg.naturalHeight),sw=W/scale,sh=H/scale;ctx.drawImage(bg,(bg.naturalWidth-sw)/2,(bg.naturalHeight-sh)/2,sw,sh,0,0,W,H)}else{ctx.fillStyle="#704525";ctx.fillRect(0,0,W,H);ctx.fillStyle="#fff";ctx.font="bold 15px sans-serif";ctx.fillText("Coloque recepcao-jogo.jpg junto deste HTML.",20,32)}}
 
-function guestScale(){return clamp(Math.min(W/1050,H/600)*2.25,1.55,2.35)}
+function guestScale(){return clamp(Math.min(W/1050,H/600)*2.25,1.55,2.35)*2}
 
 function spawn(type="guest",x=W+100,yOffset=0,opts={}){
 
