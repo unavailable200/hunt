@@ -85,9 +85,30 @@ x-50,H*.29);ctx.lineTo(x+50,H*.29);ctx.stroke()}
 ctx.save();ctx.strokeStyle='#c59a55';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(W*.5,0);ctx.lineTo(W*.5,H*.11);ctx.stroke();ctx.fillStyle='#f6d99a';ctx.shadowColor='#ffd98c';ctx.shadowBlur=35;ctx.beginPath();
 ctx.arc(W*.5,H*.13,13,0,7);ctx.fill();ctx.restore();
 // chão em perspectiva
-const floor=ctx.createLinearGradient(0,H*.62,0,H);floor.addColorStop(0,'#5a4030');floor.addColorStop(1,'#211b19');ctx.fillStyle=floor;ctx.fillRect(0,H*.65,W,H*.35);
-ctx.strokeStyle='#96704c66';ctx.lineWidth=1;for(let i=0;i<10;i++){const y=H*(.68+i*.038);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}for(let i=-5;i<6;i++){ctx.beginPath();ctx.moveTo(W*.5,H*
-65);ctx.lineTo(W*.5+i*W*.18,H);ctx.stroke()}
+// chão em perspectiva
+const floor=ctx.createLinearGradient(0,H*.62,0,H);
+floor.addColorStop(0,'#5a4030');
+floor.addColorStop(1,'#211b19');
+ctx.fillStyle=floor;
+ctx.fillRect(0,H*.65,W,H*.35);
+
+ctx.strokeStyle='#96704c66';
+ctx.lineWidth=1;
+
+for(let i=0;i<10;i++){
+    const y=H*(.68+i*.038);
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(W,y);
+    ctx.stroke();
+}
+
+for(let i=-5;i<6;i++){
+    ctx.beginPath();
+    ctx.moveTo(W*.5,H*.65);
+    ctx.lineTo(W*.5+i*W*.18,H);
+    ctx.stroke();
+}
 // balcão
 const by=H*.57;ctx.fillStyle='#211b19';ctx.fillRect(W*.08,by,W*.84,H*.15);const wood=ctx.createLinearGradient(0,by,0,by+H*.15);wood.addColorStop(0,'#8d6038');wood.addColorStop(.15,'#d0a15f');wood.addColorStop(
 .3,'#55351f');wood.addColorStop(1,'#261a13');ctx.fillStyle=wood;ctx.fillRect(W*.08,by,W*.84,H*.15);ctx.strokeStyle='#e3bd7a';ctx.lineWidth=3;ctx.strokeRect(W*.08,by,W*.84,H*.15);
@@ -147,7 +168,18 @@ if(e.type==='bellhop'){ctx.fillStyle='#263c35';ctx.fillRect(-16,-59,32,5);ctx.fi
 moveTo(34,10);ctx.lineTo(44,10);ctx.stroke()}
 ctx.restore();
 }
-function burst(x,y,color='#f4ca72'){for(let i=0;i<18;i++){const a=rand(0,Math.PI*2),v=rand(1,5);particles.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rand(18,38),color})}
+function burst(x,y,color='#f4ca72'){
+    for(let i=0;i<18;i++){
+        const a=rand(0,Math.PI*2),v=rand(1,5);
+        particles.push({
+            x,y,
+            vx:Math.cos(a)*v,
+            vy:Math.sin(a)*v,
+            life:rand(18,38),
+            color
+        });
+    }
+}
 function shoot(){if(!running||arrows<=0)return;arrows--;const ox=W*.075,oy=H*.82,a=Math.atan2(pointer.y-oy,pointer.x-ox);shots.push({x:ox+Math.cos(a)*45,y:oy+Math.sin(a)*45,vx:Math.cos(a)*19,vy:Math.sin(a)*19,
 life:90});updateHud();if(!arrows)toastMsg('Sem flechas! Acerte alvos para recuperar munição.')}
 function hit(e){const points={guest:100,thief:300,talker:180,bellhop:220,ghost:200};score+=points[e.type]+combo*10;combo++;served++;burst(e.x,e.y-25,e.type==='ghost'?'#9fe65a':'#f5ce7d');
