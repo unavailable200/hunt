@@ -86,7 +86,7 @@ ctx.save();ctx.strokeStyle='#c59a55';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(
 ctx.arc(W*.5,H*.13,13,0,7);ctx.fill();ctx.restore();
 // chão em perspectiva
 const floor=ctx.createLinearGradient(0,H*.62,0,H);floor.addColorStop(0,'#5a4030');floor.addColorStop(1,'#211b19');ctx.fillStyle=floor;ctx.fillRect(0,H*.65,W,H*.35);
-ctx.strokeStyle='#96704c66';ctx.lineWidth=1;for(let i=0;i<10;i++){const y=H*(.68+i*.038);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}for(let i=-5;i<6;i++){ctx.beginPath();ctx.moveTo(W*.5,H*.
+ctx.strokeStyle='#96704c66';ctx.lineWidth=1;for(let i=0;i<10;i++){const y=H*(.68+i*.038);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}for(let i=-5;i<6;i++){ctx.beginPath();ctx.moveTo(W*.5,H*
 65);ctx.lineTo(W*.5+i*W*.18,H);ctx.stroke()}
 // balcão
 const by=H*.57;ctx.fillStyle='#211b19';ctx.fillRect(W*.08,by,W*.84,H*.15);const wood=ctx.createLinearGradient(0,by,0,by+H*.15);wood.addColorStop(0,'#8d6038');wood.addColorStop(.15,'#d0a15f');wood.addColorStop(
