@@ -1595,7 +1595,528 @@ function drawPerson(e) {
   }
 }
 
+
 // ========================
-// FIM DA PARTE 2
+// MOVIMENTO E FUNCIONAMENTO DO JOGO
 // ========================
- 
+
+let hasStarted = false;
+
+function fireArrow(){
+
+ if(!running || arrows<=0) return;
+
+ arrows--;
+
+ const sx=W*.5;
+ const sy=H*.91;
+
+ const dx=pointer.x-sx;
+ const dy=pointer.y-sy;
+ const distance=Math.hypot(dx,dy)||1;
+
+ shots.push({
+  x:sx,
+  y:sy,
+  vx:(dx/distance)*13,
+  vy:(dy/distance)*13,
+  life:90
+ });
+
+ sound('shoot');
+ updateHud();
+}
+
+function update(){
+
+ const dt=Math.min((performance.now()-last)/16.67,2);
+ last=performance.now();
+
+ frame+=dt;
+
+ // Porta automática
+ doorTimer-=dt;
+
+ if(doorTimer<=0){
+  doorOpen=Math.max(0,doorOpen-.025*dt);
+ }
+
+ // Funcionário abre a porta periodicamente
+ if(Math.random()<.012*dt){
+  doorOpen=1;
+  doorTimer=90;
+  sound('door');
+ }
+
+ // Entrada dos hóspedes
+ spawnClock-=dt;
+
+ if(spawnClock<=0){
+  entities.push(spawn('guest'));
+  spawnClock=rand(100,170);
+ }
+
+ // Cliente VIP
+ specialClock-=dt;
+
+ if(specialClock<=0 &&
+    !entities.some(e=>e.type==='talker')){
+
+  entities.push(spawn('talker'));
+  specialClock=rand(1400,1900);
+  toastMsg('Um cliente VIP está a chegar!');
+  sound('bell');
+ }
+
+ // Ladrão
+ thiefClock-=dt;
+
+ if(thiefClock<=0 &&
+    !entities.some(e=>e.type==='thief')){
+
+  entities.push(spawn('thief',-70));
+  thiefClock=rand(850,1200);
+  toastMsg('ATENÇÃO! Um ladrão entrou no hotel!');
+ }
+
+ // Fantasma
+ ghostClock-=dt;
+
+ if(ghostClock<=0){
+
+  entities.push(spawn('ghost'));
+  ghostClock=rand(1500,2200);
+  sound('ghost');
+ }
+
+ // Atualizar personagens
+ for(const e of entities){
+
+  e.age+=dt;
+
+  if(e.bubbleClock>0){
+   e.bubbleClock-=dt;
+
+   if(e.bubbleClock<=0){
+    e.bubble='';
+   }
+  }
+
+  if(e.type==='talker'){
+
+   if(!e.stopped){
+
+    e.x-=e.speed*dt;
+
+    if(e.x<=e.targetX){
+     e.x=e.targetX;
+     e.stopped=true;
+     e.speed=0;
+     e.bubble='Podes me imprimir a escala?';
+     e.bubbleClock=500;
+     sound('talk');
+     toastMsg('O cliente VIP chegou à recepção!');
+    }
+
+   }else{
+
+    e.age+=dt*.5;
+
+    if(e.age>1000){
+     e.remove=true;
+     served++;
+     score+=100;
+     sound('bonus');
+     toastMsg('VIP atendido! +100 pontos');
+    }
+   }
+
+  }else if(e.type==='thief'){
+
+   e.x+=e.speed*dt;
+
+  }else{
+
+   e.x-=e.speed*dt;
+  }
+
+  // Saltos dos hóspedes
+  if(e.type==='guest'){
+
+   e.jumpTimer-=dt;
+
+   if(e.jumpTimer<=0){
+    e.jump=15;
+    e.jumpTimer=rand(100,180);
+    sound('jump');
+   }
+
+   if(e.jump>0){
+    e.jump=Math.max(0,e.jump-.8*dt);
+   }
+
+   // Reclamações ocasionais
+   if(!e.bubble && Math.random()<.0008*dt){
+
+    e.bubble=complaints[
+     Math.floor(rand(0,complaints.length))
+    ];
+
+    e.bubbleClock=150;
+    sound('complaint');
+   }
+  }
+
+  // Personagens que saem do ecrã
+  if(e.x<-110 || e.x>W+110){
+   e.remove=true;
+
+   if(e.type==='thief'){
+    toastMsg('O ladrão conseguiu fugir!');
+    combo=0;
+   }
+
+   if(e.type==='guest'){
+    served++;
+   }
+  }
+ }
+
+ entities=entities.filter(e=>!e.remove);
+
+ // Atualizar flechas
+ for(const s of shots){
+
+  s.x+=s.vx*dt;
+  s.y+=s.vy*dt;
+  s.life-=dt;
+
+  // Acertar em personagens
+  for(const e of entities){
+
+   if(e.remove) continue;
+
+   const distance=Math.hypot(
+    s.x-e.x,
+    s.y-(e.y-20)
+   );
+
+   if(distance<35){
+
+    e.remove=true;
+    s.life=0;
+
+    if(e.type==='thief'){
+
+     score+=150;
+     combo++;
+     sound('hit');
+     toastMsg('LADRÃO APANHADO! +150 pontos');
+
+    }else if(e.type==='ghost'){
+
+     score+=50;
+     combo++;
+     sound('bonus');
+     toastMsg('Fantasma afastado! +50 pontos');
+
+    }else{
+
+     score=Math.max(0,score-30);
+     combo=0;
+     sound('complaint');
+     toastMsg('Cuidado! Acertaste num hóspede! -30 pontos');
+    }
+
+    break;
+   }
+  }
+ }
+
+ shots=shots.filter(s=>
+  s.life>0 &&
+  s.x>-50 && s.x<W+50 &&
+  s.y>-50 && s.y<H+50
+ );
+
+ // Partículas
+ for(const p of particles){
+
+  p.x+=p.vx*dt;
+  p.y+=p.vy*dt;
+  p.life-=dt;
+ }
+
+ particles=particles.filter(p=>p.life>0);
+
+ // Mensagens
+ if(toastClock>0){
+  toastClock-=dt*16.67;
+
+  if(toastClock<=0){
+   toast.style.opacity=0;
+  }
+ }
+
+ // Aumentar dificuldade
+ const newPhase=1+Math.floor(score/500);
+
+ if(newPhase!==phase){
+  phase=newPhase;
+  toastMsg('FASE '+phase+' — O HOTEL ESTÁ MAIS MOVIMENTADO!');
+ }
+
+ updateHud();
+}
+
+
+// ========================
+// DESENHO DAS FLECHAS
+// ========================
+
+function drawShots(){
+
+ ctx.save();
+
+ for(const s of shots){
+
+  ctx.strokeStyle='#f5d18b';
+  ctx.lineWidth=4;
+  ctx.lineCap='round';
+
+  ctx.beginPath();
+  ctx.moveTo(s.x,s.y);
+  ctx.lineTo(s.x-s.vx*2,s.y-s.vy*2);
+  ctx.stroke();
+
+  ctx.fillStyle='#fff0c4';
+
+  ctx.beginPath();
+  ctx.arc(s.x,s.y,3,0,Math.PI*2);
+  ctx.fill();
+ }
+
+ ctx.restore();
+}
+
+
+// ========================
+// PARTÍCULAS
+// ========================
+
+function drawParticles(){
+
+ ctx.save();
+
+ for(const p of particles){
+
+  ctx.globalAlpha=clamp(p.life/30,0,1);
+  ctx.fillStyle=p.color||'#f5d18b';
+
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,3,0,Math.PI*2);
+  ctx.fill();
+ }
+
+ ctx.globalAlpha=1;
+ ctx.restore();
+}
+
+
+// ========================
+// DESENHO GERAL
+// ========================
+
+function drawGame(){
+
+ drawBackground();
+
+ // Carrinho VIP
+ if(cartX<W+100){
+  drawCart(W*.70,H*.76);
+ }
+
+ // Funcionário da recepção
+ drawWaiter(W*.84,H*.72);
+
+ // Personagens
+ for(const e of entities){
+  drawPerson(e);
+ }
+
+ // Flechas e partículas
+ drawShots();
+ drawParticles();
+
+ // Mira
+ if(running){
+
+  ctx.save();
+
+  ctx.strokeStyle='#ffe0a0aa';
+  ctx.lineWidth=1.5;
+
+  ctx.beginPath();
+  ctx.arc(pointer.x,pointer.y,12,0,Math.PI*2);
+
+  ctx.moveTo(pointer.x-18,pointer.y);
+  ctx.lineTo(pointer.x+18,pointer.y);
+
+  ctx.moveTo(pointer.x,pointer.y-18);
+  ctx.lineTo(pointer.x,pointer.y+18);
+
+  ctx.stroke();
+  ctx.restore();
+ }
+}
+
+
+// ========================
+// CICLO DE ANIMAÇÃO
+// ========================
+
+function loop(time){
+
+ if(!last) last=time;
+
+ if(running){
+  update();
+ }
+
+ drawGame();
+
+ requestAnimationFrame(loop);
+}
+
+
+// ========================
+// COMEÇAR JOGO
+// ========================
+
+function startGame(){
+
+ initAudio();
+
+ running=true;
+ hasStarted=true;
+
+ score=0;
+ arrows=40;
+ phase=1;
+ combo=0;
+ served=0;
+
+ entities=[];
+ shots=[];
+ particles=[];
+ smells=[];
+
+ spawnClock=60;
+ specialClock=500;
+ thiefClock=900;
+ ghostClock=1800;
+ complaintClock=0;
+
+ doorOpen=0;
+ doorTimer=0;
+
+ panel.style.display='none';
+
+ document.getElementById('pause').textContent='PAUSAR';
+
+ last=performance.now();
+
+ updateHud();
+
+ toastMsg('Bem-vindo ao HOTEL KIBOAS!');
+
+ sound('bell');
+}
+
+
+// ========================
+// PAUSAR E CONTINUAR
+// ========================
+
+function togglePause(){
+
+ if(!hasStarted) return;
+
+ running=!running;
+
+ if(running){
+
+  document.getElementById('pause').textContent='PAUSAR';
+  last=performance.now();
+  toastMsg('Jogo retomado!');
+
+ }else{
+
+  document.getElementById('pause').textContent='CONTINUAR';
+  toastMsg('JOGO PAUSADO');
+ }
+}
+
+
+// ========================
+// CONTROLOS DO JOGADOR
+// ========================
+
+canvas.addEventListener('pointermove',e=>{
+
+ const rect=canvas.getBoundingClientRect();
+
+ pointer.x=e.clientX-rect.left;
+ pointer.y=e.clientY-rect.top;
+});
+
+canvas.addEventListener('pointerdown',e=>{
+
+ if(!running) return;
+
+ const rect=canvas.getBoundingClientRect();
+
+ pointer.x=e.clientX-rect.left;
+ pointer.y=e.clientY-rect.top;
+
+ fireArrow();
+});
+
+document.addEventListener('keydown',e=>{
+
+ if(e.code==='Space'){
+
+  e.preventDefault();
+  fireArrow();
+ }
+
+ if(e.code==='Escape'){
+  togglePause();
+ }
+});
+
+document.getElementById('start').addEventListener(
+ 'click',
+ startGame
+);
+
+document.getElementById('pause').addEventListener(
+ 'click',
+ togglePause
+);
+
+
+// ========================
+// INICIALIZAÇÃO
+// ========================
+
+updateHud();
+
+requestAnimationFrame(loop);
+
+})(); 
+</script>
+
+</body>
+</html>
+
