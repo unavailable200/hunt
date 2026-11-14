@@ -4,87 +4,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Hotel KIBOAS — O Garçom</title>
+<title>Hotel KIBOAS</title>
 
 <style>
 *{box-sizing:border-box}
 
 html,body{
- margin:0;
- width:100%;
- height:100%;
- overflow:hidden;
- background:#151a20;
- color:white;
+ margin:0;width:100%;height:100%;
+ overflow:hidden;background:#151a20;color:white;
  font-family:Arial,sans-serif;
 }
 
-#game-wrap{
- position:fixed;
- inset:0;
-}
-
-canvas{
- width:100%;
- height:100%;
- display:block;
-}
+#game-wrap{position:fixed;inset:0}
+canvas{width:100%;height:100%;display:block}
 
 #dialogue{
- position:absolute;
- left:50%;
- bottom:9%;
+ position:absolute;left:50%;bottom:9%;
  transform:translateX(-50%);
  width:min(650px,90%);
- padding:22px;
+ padding:18px;
  border:3px solid #e8bd72;
  border-radius:18px;
  background:#101827ee;
  text-align:center;
  box-shadow:0 10px 35px #000a;
  display:none;
+ z-index:2;
 }
 
 #dialogue h2{
- color:#f4d18a;
- margin:0 0 12px;
+ color:#f4d18a;margin:0 0 10px;
  font-size:clamp(20px,4vw,32px);
 }
 
 #dialogue p{
- font-size:clamp(16px,3vw,24px);
- margin:0;
- line-height:1.5;
+ font-size:clamp(16px,3vw,23px);
+ margin:0;line-height:1.4;
 }
 
-#start{
- position:absolute;
- left:50%;
- top:50%;
- transform:translate(-50%,-50%);
- padding:18px 30px;
- border:0;
- border-radius:12px;
- background:linear-gradient(135deg,#f4d18a,#d99d43);
- font-weight:bold;
- font-size:20px;
- cursor:pointer;
+#start,#give-cigarette{
+ position:absolute;left:50%;transform:translateX(-50%);
+ padding:16px 25px;border:0;border-radius:12px;
+ font-weight:bold;font-size:18px;cursor:pointer;
  z-index:5;
 }
 
+#start{
+ top:50%;
+ transform:translate(-50%,-50%);
+ background:linear-gradient(135deg,#f4d18a,#d99d43);
+}
+
+#give-cigarette{
+ bottom:3%;
+ background:linear-gradient(135deg,#e5e5e5,#999);
+ color:#222;
+ display:none;
+}
+
+#give-cigarette:disabled{
+ opacity:.5;cursor:default;
+}
 </style>
 </head>
 
 <body>
-
 <div id="game-wrap">
 <canvas id="game"></canvas>
 
 <button id="start">COMEÇAR CENA</button>
+<button id="give-cigarette">🚬 DAR CIGARRO</button>
 
 <div id="dialogue">
-<h2>GARÇOM DO HOTEL KIBOAS</h2>
-<p id="message">Bom dia! Pode tirar uma cópia para mim, por favor?</p>
+ <h2>ALEX</h2>
+ <p id="message">Bom dia! Pode tirar uma cópia para mim, por favor?</p>
 </div>
 </div>
 
@@ -95,15 +88,18 @@ canvas{
 const canvas=document.getElementById('game');
 const ctx=canvas.getContext('2d');
 const start=document.getElementById('start');
+const giveButton=document.getElementById('give-cigarette');
 const dialogue=document.getElementById('dialogue');
+const message=document.getElementById('message');
 
-let W=0,H=0;
-let frame=0;
-let running=false;
-let arrived=false;
-
-let waiterX=-250;
-let targetX=0;
+let W=0,H=0,frame=0;
+let running=false,arrived=false;
+let waiterX=-250,targetX=0;
+let smoking=false;
+let cigaretteTaken=false;
+let smoke=[];
+let reactionTimer=0;
+let armLift=0;
 
 const image=new Image();
 image.src='recepcao-jogo.jpg';
@@ -113,38 +109,28 @@ function resize(){
  H=canvas.height=window.innerHeight;
  targetX=W*.55;
 }
-
 window.addEventListener('resize',resize);
 resize();
 
-function background(){
+function say(text){
+ dialogue.style.display='block';
+ message.textContent=text;
+}
 
+function background(){
  ctx.fillStyle='#29231e';
  ctx.fillRect(0,0,W,H);
 
  if(image.complete && image.naturalWidth){
-
-  const scale=Math.max(
-   W/image.naturalWidth,
-   H/image.naturalHeight
-  );
-
-  const sw=W/scale;
-  const sh=H/scale;
-
-  ctx.drawImage(
-   image,
+  const scale=Math.max(W/image.naturalWidth,H/image.naturalHeight);
+  const sw=W/scale,sh=H/scale;
+  ctx.drawImage(image,
    (image.naturalWidth-sw)/2,
    (image.naturalHeight-sh)/2,
-   sw,sh,
-   0,0,W,H
-  );
-
+   sw,sh,0,0,W,H);
  }else{
-
   ctx.fillStyle='#65462f';
   ctx.fillRect(0,0,W,H);
-
   ctx.fillStyle='#e8bd72';
   ctx.font='bold 30px Arial';
   ctx.textAlign='center';
@@ -157,10 +143,8 @@ function background(){
  // Balcão da receção
  ctx.fillStyle='#4a3020';
  ctx.fillRect(W*.12,H*.69,W*.76,H*.17);
-
  ctx.fillStyle='#bd955d';
  ctx.fillRect(W*.12,H*.69,W*.76,9);
-
  ctx.fillStyle='#241914';
  ctx.fillRect(W*.12,H*.86,W*.76,H*.04);
 
@@ -170,19 +154,42 @@ function background(){
  ctx.fillText('RECEPÇÃO — HOTEL KIBOAS',W*.5,H*.665);
 }
 
+// Fumo animado
+function addSmoke(x,y){
+ smoke.push({
+  x:x+(Math.random()-0.5)*5,
+  y:y,
+  size:2+Math.random()*3,
+  life:1,
+  drift:(Math.random()-0.5)*.7
+ });
+}
+
+function drawSmoke(){
+ for(let i=smoke.length-1;i>=0;i--){
+  const p=smoke[i];
+  p.y-=.8;
+  p.x+=p.drift;
+  p.size+=.025;
+  p.life-=.012;
+
+  ctx.globalAlpha=Math.max(0,p.life)*.45;
+  ctx.fillStyle='#eeeeee';
+  ctx.beginPath();
+  ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha=1;
+
+  if(p.life<=0)smoke.splice(i,1);
+ }
+}
 
 // GARÇOM GIGANTE
-// Personagem desenhado em escala 10 vezes superior
-
 function drawWaiter(x,y){
-
  ctx.save();
-
  ctx.translate(x,y);
 
  const bob=Math.sin(frame*.06)*3;
-
- // Escala dez vezes maior
  ctx.scale(10,10);
 
  // Sombra
@@ -191,85 +198,91 @@ function drawWaiter(x,y){
  ctx.ellipse(0,49,27,7,0,0,Math.PI*2);
  ctx.fill();
 
- // Calças pretas
+ // Pernas
  ctx.strokeStyle='#111316';
  ctx.lineWidth=12;
  ctx.lineCap='round';
-
  ctx.beginPath();
- ctx.moveTo(-7,14);
- ctx.lineTo(-9,43);
-
- ctx.moveTo(7,14);
- ctx.lineTo(9,43);
+ ctx.moveTo(-7,14);ctx.lineTo(-9,43);
+ ctx.moveTo(7,14);ctx.lineTo(9,43);
  ctx.stroke();
 
  // Sapatos
  ctx.strokeStyle='#08090a';
  ctx.lineWidth=7;
-
  ctx.beginPath();
- ctx.moveTo(-9,43);
- ctx.lineTo(-19,46);
-
- ctx.moveTo(9,43);
- ctx.lineTo(19,46);
+ ctx.moveTo(-9,43);ctx.lineTo(-19,46);
+ ctx.moveTo(9,43);ctx.lineTo(19,46);
  ctx.stroke();
 
- // Camisa branca
+ // Camisa
  ctx.fillStyle='#f7f5ee';
-
  ctx.beginPath();
- ctx.moveTo(-16,-22);
- ctx.lineTo(16,-22);
- ctx.lineTo(20,24);
- ctx.lineTo(-20,24);
- ctx.closePath();
- ctx.fill();
+ ctx.moveTo(-16,-22);ctx.lineTo(16,-22);
+ ctx.lineTo(20,24);ctx.lineTo(-20,24);
+ ctx.closePath();ctx.fill();
 
  // Gola
  ctx.fillStyle='#e4e0d8';
-
  ctx.beginPath();
- ctx.moveTo(-8,-22);
- ctx.lineTo(0,-11);
- ctx.lineTo(8,-22);
- ctx.closePath();
- ctx.fill();
+ ctx.moveTo(-8,-22);ctx.lineTo(0,-11);
+ ctx.lineTo(8,-22);ctx.closePath();ctx.fill();
 
- // Avental amarelo
+ // Avental
  ctx.fillStyle='#efc52f';
  ctx.fillRect(-19,5,38,17);
-
  ctx.strokeStyle='#b98b17';
  ctx.lineWidth=1.5;
  ctx.strokeRect(-19,5,38,17);
-
- // Bolso
  ctx.strokeStyle='#a77c16';
  ctx.strokeRect(-11,9,11,8);
 
- // Braço direito levantado
+ // Braço direito: levanta para fumar
  ctx.strokeStyle='#f7f5ee';
  ctx.lineWidth=9;
  ctx.lineCap='round';
-
  ctx.beginPath();
  ctx.moveTo(15,-14);
- ctx.lineTo(29,-27);
- ctx.lineTo(39,-37);
+
+ if(cigaretteTaken){
+  ctx.lineTo(24,-24);
+  ctx.lineTo(10,-38+armLift);
+ }else{
+  ctx.lineTo(29,-27);
+  ctx.lineTo(39,-37);
+ }
  ctx.stroke();
 
  // Mão
  ctx.fillStyle='#d9a17e';
  ctx.beginPath();
- ctx.arc(40,-39+bob,6,0,Math.PI*2);
+ ctx.arc(
+  cigaretteTaken?10:40,
+  (cigaretteTaken?-38: -39)+bob+armLift,
+  6,0,Math.PI*2
+ );
  ctx.fill();
+
+ // Cigarro na mão / boca
+ if(cigaretteTaken){
+  ctx.save();
+  ctx.translate(10,-39+bob+armLift);
+  ctx.rotate(-.25);
+  ctx.fillStyle='#f5f0df';
+  ctx.fillRect(-2,-2,13,3);
+  ctx.fillStyle='#e95c28';
+  ctx.fillRect(9,-2,3,3);
+  ctx.restore();
+ }else if(smoking){
+  ctx.fillStyle='#eee9db';
+  ctx.fillRect(7,-42+bob,12,3);
+  ctx.fillStyle='#e95c28';
+  ctx.fillRect(17,-42+bob,3,3);
+ }
 
  // Braço esquerdo
  ctx.strokeStyle='#f7f5ee';
  ctx.lineWidth=9;
-
  ctx.beginPath();
  ctx.moveTo(-15,-14);
  ctx.lineTo(-25,8);
@@ -280,84 +293,118 @@ function drawWaiter(x,y){
  ctx.fillRect(-5,-31,10,13);
 
  // Cabeça
+ ctx.fillStyle='#d9a17e';
  ctx.beginPath();
  ctx.ellipse(0,-40+bob,14,17,0,0,Math.PI*2);
  ctx.fill();
 
  // Cabelo
  ctx.fillStyle='#29211d';
-
  ctx.beginPath();
  ctx.moveTo(-14,-43+bob);
  ctx.quadraticCurveTo(-12,-62+bob,5,-58+bob);
  ctx.quadraticCurveTo(17,-55+bob,13,-39+bob);
  ctx.quadraticCurveTo(4,-49+bob,-4,-47+bob);
- ctx.closePath();
- ctx.fill();
+ ctx.closePath();ctx.fill();
 
  // Olhos
  ctx.fillStyle='#25201d';
-
  ctx.beginPath();
  ctx.arc(-5,-40+bob,1.4,0,Math.PI*2);
  ctx.arc(5,-40+bob,1.4,0,Math.PI*2);
  ctx.fill();
 
- // Sorriso
+ // Boca muda conforme a reação
  ctx.strokeStyle='#80513f';
  ctx.lineWidth=1;
-
  ctx.beginPath();
- ctx.moveTo(-3,-33+bob);
- ctx.quadraticCurveTo(0,-31+bob,3,-33+bob);
+ if(smoking){
+  ctx.arc(0,-33+bob,2,0,Math.PI*2);
+ }else{
+  ctx.moveTo(-3,-33+bob);
+  ctx.quadraticCurveTo(0,-31+bob,3,-33+bob);
+ }
  ctx.stroke();
 
  ctx.restore();
 }
 
-
 function draw(){
-
  background();
 
- // Garçom é o único personagem
+ // O garçom é o único personagem
  drawWaiter(waiterX,H*.57);
 
  if(running && !arrived){
-
   waiterX+=2.2;
-
   if(waiterX>=targetX){
    waiterX=targetX;
    arrived=true;
+   say('Bom dia! Pode tirar uma cópia para mim, por favor?');
+   giveButton.style.display='block';
+  }
+ }
 
-   dialogue.style.display='block';
-   document.getElementById('message').textContent=
-    'Bom dia! Pode tirar uma cópia para mim, por favor?';
+ if(smoking){
+  // Fumo a sair da zona da boca
+  if(frame%5===0){
+   const mouthX=waiterX+5;
+   const mouthY=H*.57-400;
+   addSmoke(mouthX,mouthY);
+  }
+ }
+
+ drawSmoke();
+
+ // Pequena animação do braço
+ if(cigaretteTaken){
+  armLift=smoking?Math.sin(frame*.12)*2:0;
+ }
+
+ if(reactionTimer>0){
+  reactionTimer--;
+  if(reactionTimer===0 && smoking){
+   say('Ahhh... uma pausa! Agora sim, estou pronto para tirar cópias! 😄');
   }
  }
 
  frame++;
-
  requestAnimationFrame(draw);
 }
 
-
 start.addEventListener('click',()=>{
-
  running=true;
  arrived=false;
+ smoking=false;
+ cigaretteTaken=false;
+ smoke=[];
  waiterX=-250;
-
  start.style.display='none';
  dialogue.style.display='none';
+ giveButton.style.display='none';
+});
 
+giveButton.addEventListener('click',()=>{
+ if(!arrived || cigaretteTaken)return;
+
+ cigaretteTaken=true;
+ smoking=true;
+ giveButton.disabled=true;
+ giveButton.textContent='🚬 ALEX ESTÁ A FUMAR...';
+
+ say('ALEX: O quê?! Um cigarro? Bem... só uma pausa rápida! 😲');
+ reactionTimer=240;
+
+ setTimeout(()=>{
+  if(smoking){
+   say('ALEX: Que pausa maravilhosa! Mas não te esqueças da fotocópia! 😂');
+  }
+ },5000);
 });
 
 draw();
 
 })();
 </script>
-
 </body>
 </html>
