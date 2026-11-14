@@ -18,11 +18,14 @@ html,body{
 #game-wrap{position:fixed;inset:0}
 canvas{width:100%;height:100%;display:block}
 
-#start,#give-cigarette{
- position:absolute;left:50%;transform:translateX(-50%);
- padding:16px 25px;border:0;border-radius:12px;
- font-weight:bold;font-size:18px;cursor:pointer;
- z-index:5;
+button{
+ position:absolute;
+ left:50%;
+ transform:translateX(-50%);
+ padding:16px 25px;
+ border:0;border-radius:12px;
+ font-weight:bold;font-size:18px;
+ cursor:pointer;z-index:5;
 }
 
 #start{
@@ -58,60 +61,60 @@ canvas{width:100%;height:100%;display:block}
 
 const canvas=document.getElementById('game');
 const ctx=canvas.getContext('2d');
+
 const start=document.getElementById('start');
 const giveButton=document.getElementById('give-cigarette');
 
 let W=0,H=0,frame=0;
-let running=false,arrived=false;
-let waiterX=-250,targetX=0;
+
+let running=false;
+let arrived=false;
 let smoking=false;
 let cigaretteTaken=false;
+
+let waiterX=-250;
+let bossX=0;
+let bossArrived=false;
+let bossComing=false;
+
 let smoke=[];
-let reactionTimer=0;
 let armLift=0;
+let conversationStarted=false;
 
 const image=new Image();
 image.src='recepcao-jogo.jpg';
 
-// VOZ EM PORTUGUÊS DE PORTUGAL
+// VOZ PORTUGUESA
 function speak(text){
- if(!('speechSynthesis' in window)){
-  alert('Este navegador não suporta voz.');
-  return;
- }
+ return new Promise(resolve=>{
+  if(!('speechSynthesis' in window)){
+   resolve();
+   return;
+  }
 
- window.speechSynthesis.cancel();
+  const speech=new SpeechSynthesisUtterance(text);
+  speech.lang='pt-PT';
+  speech.rate=0.94;
+  speech.pitch=1;
+  speech.volume=1;
 
- const speech=new SpeechSynthesisUtterance(text);
- speech.lang='pt-PT';
- speech.rate=0.95;
- speech.pitch=1.0;
- speech.volume=1;
+  const voices=window.speechSynthesis.getVoices();
+  const voice=voices.find(v=>
+   v.lang.toLowerCase()==='pt-pt'
+  );
 
- const voices=window.speechSynthesis.getVoices();
+  if(voice)speech.voice=voice;
 
- const portugueseVoice=voices.find(v=>
-  v.lang.toLowerCase()==='pt-pt'
- );
+  speech.onend=resolve;
+  speech.onerror=resolve;
 
- if(portugueseVoice){
-  speech.voice=portugueseVoice;
- }
-
- window.speechSynthesis.speak(speech);
-}
-
-// Carregar vozes disponíveis
-if('speechSynthesis' in window){
- window.speechSynthesis.onvoiceschanged=()=>{
-  window.speechSynthesis.getVoices();
- };
+  window.speechSynthesis.speak(speech);
+ });
 }
 
 function resize(){
  W=canvas.width=window.innerWidth;
  H=canvas.height=window.innerHeight;
- targetX=W*.55;
 }
 
 window.addEventListener('resize',resize);
@@ -122,16 +125,24 @@ function background(){
  ctx.fillRect(0,0,W,H);
 
  if(image.complete && image.naturalWidth){
-  const scale=Math.max(W/image.naturalWidth,H/image.naturalHeight);
-  const sw=W/scale,sh=H/scale;
+  const scale=Math.max(
+   W/image.naturalWidth,
+   H/image.naturalHeight
+  );
 
-  ctx.drawImage(image,
+  const sw=W/scale;
+  const sh=H/scale;
+
+  ctx.drawImage(
+   image,
    (image.naturalWidth-sw)/2,
    (image.naturalHeight-sh)/2,
-   sw,sh,0,0,W,H);
+   sw,sh,0,0,W,H
+  );
  }else{
   ctx.fillStyle='#65462f';
   ctx.fillRect(0,0,W,H);
+
   ctx.fillStyle='#e8bd72';
   ctx.font='bold 30px Arial';
   ctx.textAlign='center';
@@ -141,7 +152,7 @@ function background(){
  ctx.fillStyle='#0005';
  ctx.fillRect(0,0,W,H);
 
- // Balcão da receção
+ // Balcão
  ctx.fillStyle='#4a3020';
  ctx.fillRect(W*.12,H*.69,W*.76,H*.17);
 
@@ -157,14 +168,14 @@ function background(){
  ctx.fillText('RECEPÇÃO — HOTEL KIBOAS',W*.5,H*.665);
 }
 
-// FUMO ANIMADO
+// FUMO
 function addSmoke(x,y){
  smoke.push({
-  x:x+(Math.random()-0.5)*5,
+  x:x+(Math.random()-.5)*5,
   y:y,
   size:2+Math.random()*3,
   life:1,
-  drift:(Math.random()-0.5)*.7
+  drift:(Math.random()-.5)*.7
  });
 }
 
@@ -190,7 +201,7 @@ function drawSmoke(){
  }
 }
 
-// GARÇOM GIGANTE
+// ALEX, O GARÇOM
 function drawWaiter(x,y){
  ctx.save();
  ctx.translate(x,y);
@@ -334,7 +345,7 @@ function drawWaiter(x,y){
  ctx.closePath();
  ctx.fill();
 
- // OLHOS VERMELHOS QUANDO FUMA
+ // Olhos vermelhos enquanto fuma
  ctx.save();
 
  if(smoking){
@@ -351,10 +362,9 @@ function drawWaiter(x,y){
  ctx.arc(5,-40+bob,2,0,Math.PI*2);
  ctx.fill();
 
- // Pequeno brilho nos olhos
  if(smoking){
   ctx.shadowBlur=0;
-  ctx.fillStyle='#ffffff';
+  ctx.fillStyle='white';
 
   ctx.beginPath();
   ctx.arc(-5.5,-40.5+bob,.6,0,Math.PI*2);
@@ -382,17 +392,279 @@ function drawWaiter(x,y){
  ctx.restore();
 }
 
+// CHEFE CULTURISTA
+function drawBoss(x,y){
+ ctx.save();
+ ctx.translate(x,y);
+
+ const bob=Math.sin(frame*.045)*2;
+
+ // Escala do chefe
+ ctx.scale(8.5,8.5);
+
+ // Sombra
+ ctx.fillStyle='#0009';
+ ctx.beginPath();
+ ctx.ellipse(0,49,36,9,0,0,Math.PI*2);
+ ctx.fill();
+
+ // Pernas musculosas com calças
+ ctx.fillStyle='#292a30';
+
+ ctx.beginPath();
+ ctx.moveTo(-18,12);
+ ctx.lineTo(-20,43);
+ ctx.lineTo(-3,43);
+ ctx.lineTo(0,15);
+ ctx.closePath();
+ ctx.fill();
+
+ ctx.beginPath();
+ ctx.moveTo(3,15);
+ ctx.lineTo(8,43);
+ ctx.lineTo(25,43);
+ ctx.lineTo(18,12);
+ ctx.closePath();
+ ctx.fill();
+
+ // Sapatos
+ ctx.fillStyle='#101114';
+ ctx.beginPath();
+ ctx.ellipse(-13,45,12,5,0,0,Math.PI*2);
+ ctx.ellipse(17,45,12,5,0,0,Math.PI*2);
+ ctx.fill();
+
+ // Pescoço
+ ctx.fillStyle='#d5a078';
+ ctx.fillRect(-8,-32,16,17);
+
+ // Corpo muito musculado
+ ctx.fillStyle='#d5a078';
+
+ // Tronco
+ ctx.beginPath();
+ ctx.moveTo(-13,-24);
+ ctx.lineTo(-29,-17);
+ ctx.lineTo(-34,7);
+ ctx.lineTo(-22,17);
+ ctx.lineTo(22,17);
+ ctx.lineTo(34,7);
+ ctx.lineTo(29,-17);
+ ctx.lineTo(13,-24);
+ ctx.closePath();
+ ctx.fill();
+
+ // Braços gigantes
+ ctx.fillStyle='#d5a078';
+
+ ctx.beginPath();
+ ctx.ellipse(-34,-8,13,17,-.2,0,Math.PI*2);
+ ctx.ellipse(34,-8,13,17,.2,0,Math.PI*2);
+ ctx.fill();
+
+ // Fato cinzento
+ ctx.fillStyle='#777b82';
+
+ ctx.beginPath();
+ ctx.moveTo(-15,-25);
+ ctx.lineTo(-28,-18);
+ ctx.lineTo(-20,18);
+ ctx.lineTo(20,18);
+ ctx.lineTo(28,-18);
+ ctx.lineTo(15,-25);
+ ctx.lineTo(0,-14);
+ ctx.closePath();
+ ctx.fill();
+
+ // Lapelas
+ ctx.fillStyle='#b9bdc3';
+
+ ctx.beginPath();
+ ctx.moveTo(-15,-25);
+ ctx.lineTo(-2,-13);
+ ctx.lineTo(-10,1);
+ ctx.lineTo(-24,-18);
+ ctx.closePath();
+ ctx.fill();
+
+ ctx.beginPath();
+ ctx.moveTo(15,-25);
+ ctx.lineTo(2,-13);
+ ctx.lineTo(10,1);
+ ctx.lineTo(24,-18);
+ ctx.closePath();
+ ctx.fill();
+
+ // Camisa branca
+ ctx.fillStyle='#f5f3ed';
+ ctx.beginPath();
+ ctx.moveTo(-7,-23);
+ ctx.lineTo(7,-23);
+ ctx.lineTo(4,8);
+ ctx.lineTo(-4,8);
+ ctx.closePath();
+ ctx.fill();
+
+ // Gravata
+ ctx.fillStyle='#242b38';
+ ctx.beginPath();
+ ctx.moveTo(-3,-19);
+ ctx.lineTo(3,-19);
+ ctx.lineTo(5,8);
+ ctx.lineTo(0,14);
+ ctx.lineTo(-5,8);
+ ctx.closePath();
+ ctx.fill();
+
+ // Botões
+ ctx.fillStyle='#292929';
+ ctx.beginPath();
+ ctx.arc(0,-5,1,0,Math.PI*2);
+ ctx.arc(0,4,1,0,Math.PI*2);
+ ctx.fill();
+
+ // Braço esquerdo musculado
+ ctx.fillStyle='#d5a078';
+ ctx.beginPath();
+ ctx.ellipse(-34,-7,12,16,-.3,0,Math.PI*2);
+ ctx.fill();
+
+ // Mão esquerda
+ ctx.beginPath();
+ ctx.arc(-36,9,7,0,Math.PI*2);
+ ctx.fill();
+
+ // Braço direito
+ ctx.beginPath();
+ ctx.ellipse(34,-7,12,16,.3,0,Math.PI*2);
+ ctx.fill();
+
+ // Mão direita com seringa
+ ctx.beginPath();
+ ctx.arc(39,12,7,0,Math.PI*2);
+ ctx.fill();
+
+ // SERINGA
+ ctx.save();
+ ctx.translate(42,5);
+ ctx.rotate(-.65);
+
+ // Corpo transparente
+ ctx.fillStyle='#d9f0f5';
+ ctx.strokeStyle='#526b75';
+ ctx.lineWidth=1;
+ ctx.fillRect(-3,-15,6,23);
+ ctx.strokeRect(-3,-15,6,23);
+
+ // Líquido
+ ctx.fillStyle='#8ac7e8';
+ ctx.fillRect(-2,-5,4,11);
+
+ // Êmbolo
+ ctx.fillStyle='#aaaaaa';
+ ctx.fillRect(-5,-18,10,3);
+ ctx.fillRect(-1,-23,2,5);
+
+ // Agulha
+ ctx.strokeStyle='#d9d9d9';
+ ctx.lineWidth=.8;
+ ctx.beginPath();
+ ctx.moveTo(0,8);
+ ctx.lineTo(0,15);
+ ctx.stroke();
+
+ ctx.restore();
+
+ // Cabeça
+ ctx.fillStyle='#d5a078';
+
+ ctx.beginPath();
+ ctx.ellipse(0,-39+bob,15,18,0,0,Math.PI*2);
+ ctx.fill();
+
+ // Cabelo preto alto estilo Johnny Bravo
+ ctx.fillStyle='#090909';
+
+ ctx.beginPath();
+ ctx.moveTo(-14,-43+bob);
+ ctx.quadraticCurveTo(-21,-57+bob,-12,-65+bob);
+ ctx.quadraticCurveTo(-9,-82+bob,2,-79+bob);
+ ctx.quadraticCurveTo(17,-79+bob,17,-62+bob);
+ ctx.quadraticCurveTo(23,-53+bob,13,-43+bob);
+ ctx.quadraticCurveTo(5,-52+bob,-4,-51+bob);
+ ctx.closePath();
+ ctx.fill();
+
+ // Sobrancelhas fortes
+ ctx.strokeStyle='#17110d';
+ ctx.lineWidth=2.5;
+ ctx.lineCap='round';
+
+ ctx.beginPath();
+ ctx.moveTo(-10,-43+bob);
+ ctx.lineTo(-3,-45+bob);
+ ctx.moveTo(3,-45+bob);
+ ctx.lineTo(10,-43+bob);
+ ctx.stroke();
+
+ // Olhos
+ ctx.fillStyle='#171717';
+
+ ctx.beginPath();
+ ctx.arc(-5,-39+bob,1.8,0,Math.PI*2);
+ ctx.arc(5,-39+bob,1.8,0,Math.PI*2);
+ ctx.fill();
+
+ // Sorriso confiante
+ ctx.strokeStyle='#70432f';
+ ctx.lineWidth=1.5;
+
+ ctx.beginPath();
+ ctx.moveTo(-5,-31+bob);
+ ctx.quadraticCurveTo(0,-27+bob,5,-31+bob);
+ ctx.stroke();
+
+ ctx.restore();
+}
+
+// CONVERSA ENTRE OS DOIS
+async function bossConversation(){
+ if(conversationStarted)return;
+ conversationStarted=true;
+
+ await speak('Então, Alex, já fumaste?');
+
+ await new Promise(resolve=>setTimeout(resolve,400));
+
+ await speak('Sim, chefe!');
+
+ await new Promise(resolve=>setTimeout(resolve,500));
+
+ await speak('Muito bem! Também me arranjas um cigarro?');
+
+ await new Promise(resolve=>setTimeout(resolve,500));
+
+ await speak('E despacha-te, que tenho uma reunião daqui a pouco!');
+}
+
+// ANIMAÇÃO
 function draw(){
  background();
 
+ // Alex
  drawWaiter(waiterX,H*.57);
 
- // Chegada à receção
+ // Chefe
+ if(bossComing || bossArrived){
+  drawBoss(bossX,H*.57);
+ }
+
+ // Alex chega
  if(running && !arrived){
   waiterX+=2.2;
 
-  if(waiterX>=targetX){
-   waiterX=targetX;
+  if(waiterX>=W*.48){
+   waiterX=W*.48;
    arrived=true;
 
    speak('Bom dia! Pode tirar uma cópia para mim, por favor?');
@@ -401,28 +673,29 @@ function draw(){
   }
  }
 
- // Fumo a sair da boca
- if(smoking && frame%5===0){
-  const mouthX=waiterX+5;
-  const mouthY=H*.57-400;
+ // Chefe entra depois de Alex começar a fumar
+ if(bossComing && !bossArrived){
+  bossX-=2.5;
 
-  addSmoke(mouthX,mouthY);
+  if(bossX<=W*.78){
+   bossX=W*.78;
+   bossArrived=true;
+   bossComing=false;
+
+   bossConversation();
+  }
+ }
+
+ // Fumo
+ if(smoking && frame%5===0){
+  addSmoke(waiterX+5,H*.57-400);
  }
 
  drawSmoke();
 
- // Movimento do braço
+ // Braço de Alex
  if(cigaretteTaken){
   armLift=smoking?Math.sin(frame*.12)*2:0;
- }
-
- // Reação depois de receber o cigarro
- if(reactionTimer>0){
-  reactionTimer--;
-
-  if(reactionTimer===0 && smoking){
-   speak('Ahhh... que maravilha! Uma pausa para fumar! Agora sim, estou pronto para tirar fotocópias!');
-  }
  }
 
  frame++;
@@ -431,15 +704,22 @@ function draw(){
 
 // COMEÇAR
 start.addEventListener('click',()=>{
+ window.speechSynthesis?.cancel();
+
  running=true;
  arrived=false;
  smoking=false;
  cigaretteTaken=false;
+
+ bossComing=false;
+ bossArrived=false;
+ conversationStarted=false;
+
  smoke=[];
  armLift=0;
- reactionTimer=0;
 
  waiterX=-250;
+ bossX=W+350;
 
  start.style.display='none';
  giveButton.style.display='none';
@@ -447,8 +727,8 @@ start.addEventListener('click',()=>{
  giveButton.textContent='🚬 DAR CIGARRO';
 });
 
-// DAR CIGARRO
-giveButton.addEventListener('click',()=>{
+// DAR CIGARRO A ALEX
+giveButton.addEventListener('click',async()=>{
  if(!arrived || cigaretteTaken)return;
 
  cigaretteTaken=true;
@@ -457,15 +737,15 @@ giveButton.addEventListener('click',()=>{
  giveButton.disabled=true;
  giveButton.textContent='🚬 ALEX ESTÁ A FUMAR...';
 
- speak('O quê?! Um cigarro? Muito obrigado! Vou fazer uma pausa rapidinha!');
+ await speak('O quê?! Um cigarro? Muito obrigado! Vou fazer uma pausa rapidinha!');
 
- reactionTimer=300;
+ await new Promise(resolve=>setTimeout(resolve,1800));
 
- setTimeout(()=>{
-  if(smoking){
-   speak('Eh pá! Estou com os olhos a arder! Mas que pausa fantástica! Não te esqueças da fotocópia!');
-  }
- },7000);
+ await speak('Ah, que maravilha!');
+
+ // O chefe entra em cena
+ bossX=W+350;
+ bossComing=true;
 });
 
 draw();
