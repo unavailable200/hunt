@@ -1,251 +1,91 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Hotel Hunter — KIBOAS Deluxe</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hotel KIBOAS — O Garçom</title>
 
 <style>
-:root {
-  --gold:#e8bd72;
-  --glass:rgba(10,16,25,.88);
+*{box-sizing:border-box}
+
+html,body{
+ margin:0;
+ width:100%;
+ height:100%;
+ overflow:hidden;
+ background:#151a20;
+ color:white;
+ font-family:Arial,sans-serif;
 }
 
-* { box-sizing:border-box; }
-
-html,body {
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  background:#151a20;
-  color:white;
-  font-family:Inter,system-ui,Arial;
-  user-select:none;
+#game-wrap{
+ position:fixed;
+ inset:0;
 }
 
-#game-wrap {
-  position:fixed;
-  inset:0;
+canvas{
+ width:100%;
+ height:100%;
+ display:block;
 }
 
-canvas {
-  width:100%;
-  height:100%;
-  display:block;
-  touch-action:none;
-  cursor:crosshair;
+#dialogue{
+ position:absolute;
+ left:50%;
+ bottom:9%;
+ transform:translateX(-50%);
+ width:min(650px,90%);
+ padding:22px;
+ border:3px solid #e8bd72;
+ border-radius:18px;
+ background:#101827ee;
+ text-align:center;
+ box-shadow:0 10px 35px #000a;
+ display:none;
 }
 
-.topbar {
-  position:absolute;
-  z-index:3;
-  top:12px;
-  left:12px;
-  right:12px;
-  display:flex;
-  justify-content:space-between;
-  gap:8px;
-  pointer-events:none;
+#dialogue h2{
+ color:#f4d18a;
+ margin:0 0 12px;
+ font-size:clamp(20px,4vw,32px);
 }
 
-.brand,.stat {
-  background:var(--glass);
-  border:1px solid #e8bd7266;
-  border-radius:12px;
-  padding:9px;
-  box-shadow:0 5px 20px #0008;
+#dialogue p{
+ font-size:clamp(16px,3vw,24px);
+ margin:0;
+ line-height:1.5;
 }
 
-.brand strong {
-  font-size:20px;
-  display:block;
+#start{
+ position:absolute;
+ left:50%;
+ top:50%;
+ transform:translate(-50%,-50%);
+ padding:18px 30px;
+ border:0;
+ border-radius:12px;
+ background:linear-gradient(135deg,#f4d18a,#d99d43);
+ font-weight:bold;
+ font-size:20px;
+ cursor:pointer;
+ z-index:5;
 }
 
-.eyebrow {
-  font-size:9px;
-  color:var(--gold);
-  letter-spacing:3px;
-}
-
-#hud {
-  display:flex;
-  gap:5px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-
-.stat {
-  text-align:center;
-  min-width:55px;
-  padding:6px;
-}
-
-.stat small {
-  display:block;
-  color:var(--gold);
-  font-size:8px;
-}
-
-.stat b { font-size:15px; }
-
-#pause {
-  position:absolute;
-  z-index:5;
-  top:85px;
-  right:12px;
-  background:#101827e8;
-  color:white;
-  border:1px solid #ffffff66;
-  padding:9px 15px;
-  border-radius:9px;
-  font-weight:bold;
-}
-
-#hint {
-  position:absolute;
-  z-index:2;
-  bottom:9px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#101827d9;
-  padding:9px 12px;
-  border-radius:8px;
-  font-size:10px;
-  text-align:center;
-  width:max-content;
-  max-width:95%;
-}
-
-#toast {
-  position:absolute;
-  z-index:6;
-  top:115px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#101827ed;
-  border:1px solid var(--gold);
-  padding:10px 15px;
-  border-radius:10px;
-  color:#ffe0a0;
-  font-weight:bold;
-  opacity:0;
-  transition:.2s;
-  text-align:center;
-  max-width:90%;
-}
-
-.panel {
-  position:absolute;
-  z-index:8;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:min(510px,calc(100% - 28px));
-  padding:25px;
-  text-align:center;
-  border-radius:18px;
-  border:1px solid #e8bd7299;
-  background:linear-gradient(145deg,#111a27f5,#080d15f5);
-  box-shadow:0 20px 70px #000c;
-}
-
-.panel h1 {
-  font-size:clamp(28px,5vw,42px);
-  margin:0;
-}
-
-.panel h1 span { color:var(--gold); }
-
-.panel p {
-  color:#d5dce5;
-  line-height:1.5;
-}
-
-.panel button {
-  border:0;
-  border-radius:10px;
-  padding:14px 23px;
-  background:linear-gradient(135deg,#f4d18a,#d99d43);
-  font-weight:950;
-  cursor:pointer;
-}
-
-.legend {
-  display:flex;
-  justify-content:center;
-  gap:12px;
-  flex-wrap:wrap;
-  font-size:12px;
-  color:#ddd;
-}
-
-@media(max-width:650px) {
-  .topbar { top:6px;left:6px;right:6px; }
-  .brand { padding:6px; }
-  .brand strong { font-size:15px; }
-  .stat { min-width:42px;padding:5px; }
-  .stat b { font-size:12px; }
-  #pause { top:66px;right:7px; }
-  #hint { font-size:8px; }
-}
 </style>
 </head>
 
 <body>
 
 <div id="game-wrap">
-
 <canvas id="game"></canvas>
 
-<div class="topbar">
+<button id="start">COMEÇAR CENA</button>
 
-  <div class="brand">
-    <span class="eyebrow">ARCADE • DELUXE EDITION</span>
-    <strong>HOTEL <span style="color:var(--gold)">HUNTER</span></strong>
-  </div>
-
-  <div id="hud"></div>
-
+<div id="dialogue">
+<h2>GARÇOM DO HOTEL KIBOAS</h2>
+<p id="message">Bom dia! Pode tirar uma cópia para mim, por favor?</p>
 </div>
-
-<button id="pause">PAUSAR</button>
-
-<div id="toast"></div>
-
-<div id="hint">
-RATO / TOQUE PARA MIRAR · CLIQUE OU ESPAÇO PARA DISPARAR · ESC PARA PAUSAR
-</div>
-
-<section class="panel" id="panel">
-
-  <h1>HOTEL <span>HUNTER</span></h1>
-
-  <p>
-    Bem-vindo ao Hotel KIBOAS!
-    Os hóspedes entram pela porta direita e atravessam a recepção.
-    Intercepte o ladrão e mantenha o serviço a funcionar.
-  </p>
-
-  <div class="legend">
-    <span>👤 Hóspedes</span>
-    <span>🧳 Bagagens</span>
-    <span>🦹 Ladrão</span>
-    <span>👻 Fantasma</span>
-    <span>🥧 Pastéis de nata</span>
-    <span>🍷 Vinhos</span>
-  </div>
-
-  <p>
-    O funcionário de avental amarelo abre a porta.
-    O cliente VIP musculado, de fato cinzento e gravata amarela,
-    chega ao balcão e pergunta:
-    «Podes me imprimir a escala?»
-  </p>
-
-  <button id="start">COMEÇAR JOGO</button>
-
-</section>
 </div>
 
 <script>
@@ -254,615 +94,85 @@ RATO / TOQUE PARA MIRAR · CLIQUE OU ESPAÇO PARA DISPARAR · ESC PARA PAUSAR
 
 const canvas=document.getElementById('game');
 const ctx=canvas.getContext('2d');
-const root=document.getElementById('game-wrap');
-const hud=document.getElementById('hud');
-const panel=document.getElementById('panel');
-const toast=document.getElementById('toast');
+const start=document.getElementById('start');
+const dialogue=document.getElementById('dialogue');
 
-let W=0,H=0,DPR=1,last=0,frame=0;
-
+let W=0,H=0;
+let frame=0;
 let running=false;
-let score=0;
-let arrows=40;
-let phase=1;
-let combo=0;
-let best=0;
-let served=0;
+let arrived=false;
 
-let entities=[];
-let shots=[];
-let particles=[];
-let smells=[];
+let waiterX=-250;
+let targetX=0;
 
-let spawnClock=0;
-let specialClock=0;
-let thiefClock=0;
-let ghostClock=0;
-let complaintClock=0;
-
-let waiter=null;
-let cartX=-300;
-let doorOpen=0;
-let doorTimer=0;
-
-const receptionImage=new Image();
-receptionImage.src='recepcao-jogo.jpg';
-
-let toastClock=0;
-let audio=null;
-
-const pointer={x:0,y:0};
-
-const rand=(a,b)=>a+Math.random()*(b-a);
-
-const clamp=(v,a,b)=>Math.max(a,Math.min(v,b));
-
-const palette=[
- {skin:'#d9a17e',hair:'#33231c',suit:'#26394d',shirt:'#eee8dc',tie:'#9b3e3e'},
- {skin:'#8b573f',hair:'#171514',suit:'#34483f',shirt:'#eee6d8',tie:'#c29a50'},
- {skin:'#c98965',hair:'#2b1c19',suit:'#49384f',shirt:'#eee9df',tie:'#c39b59'},
- {skin:'#edc6a2',hair:'#aaa9a2',suit:'#50545b',shirt:'#f0eee8',tie:'#7d3541'},
- {skin:'#a96e4f',hair:'#181716',suit:'#34415a',shirt:'#eee7d9'}
-];
-
-const countries=['BR','AO','PT','US','CN','UA','CV','ST'];
-
-const complaints=[
- 'Estou à espera há muito tempo!',
- 'Onde está o meu quarto?!',
- 'Quero falar com o gerente!',
- 'A minha mala desapareceu!',
- 'Que serviço é este?!',
- 'Preciso da chave do quarto!',
- 'Já estou farto de esperar!'
-];
+const image=new Image();
+image.src='recepcao-jogo.jpg';
 
 function resize(){
-
- const r=root.getBoundingClientRect();
-
- W=r.width;
- H=r.height;
-
- DPR=Math.min(devicePixelRatio||1,2);
-
- canvas.width=Math.round(W*DPR);
- canvas.height=Math.round(H*DPR);
-
- ctx.setTransform(DPR,0,0,DPR,0,0);
-
- pointer.x=W*.5;
- pointer.y=H*.5;
+ W=canvas.width=window.innerWidth;
+ H=canvas.height=window.innerHeight;
+ targetX=W*.55;
 }
 
-addEventListener('resize',resize);
+window.addEventListener('resize',resize);
 resize();
 
+function background(){
 
-// ========================
-// SISTEMA DE SOM
-// ========================
-
-function initAudio(){
-
- if(!audio){
-
-  const AC=window.AudioContext||window.webkitAudioContext;
-
-  if(AC) audio=new AC();
- }
-
- if(audio?.state==='suspended') audio.resume();
-}
-
-function tone(freq,duration,type='sine',volume=.06,endFreq=null){
-
- if(!audio)return;
-
- const o=audio.createOscillator();
- const g=audio.createGain();
-
- o.type=type;
-
- o.frequency.setValueAtTime(freq,audio.currentTime);
-
- if(endFreq){
-  o.frequency.exponentialRampToValueAtTime(
-   endFreq,
-   audio.currentTime+duration
-  );
- }
-
- g.gain.setValueAtTime(volume,audio.currentTime);
-
- g.gain.exponentialRampToValueAtTime(
-  .001,
-  audio.currentTime+duration
- );
-
- o.connect(g);
- g.connect(audio.destination);
-
- o.start();
- o.stop(audio.currentTime+duration);
-}
-
-function noise(duration=.15,volume=.04){
-
- if(!audio)return;
-
- const length=Math.floor(audio.sampleRate*duration);
-
- const buffer=audio.createBuffer(
-  1,length,audio.sampleRate
- );
-
- const data=buffer.getChannelData(0);
-
- for(let i=0;i<length;i++){
-  data[i]=Math.random()*2-1;
- }
-
- const source=audio.createBufferSource();
- const gain=audio.createGain();
-
- gain.gain.setValueAtTime(volume,audio.currentTime);
-
- gain.gain.exponentialRampToValueAtTime(
-  .001,
-  audio.currentTime+duration
- );
-
- source.buffer=buffer;
- source.connect(gain);
- gain.connect(audio.destination);
-
- source.start();
-}
-
-function sound(s){
-
- initAudio();
-
- if(!audio)return;
-
- switch(s){
-
-  case 'shoot':
-   tone(440,.09,'triangle',.08,180);
-   break;
-
-  case 'hit':
-   noise(.15,.08);
-   tone(95,.13,'sawtooth',.06,35);
-   break;
-
-  case 'complaint':
-   tone(340,.15,'square',.03,240);
-   break;
-
-  case 'talk':
-   tone(240,.1,'sine',.025,320);
-   break;
-
-  case 'ghost':
-   tone(150,.5,'sawtooth',.05,45);
-   noise(.35,.05);
-   break;
-
-  case 'jump':
-   tone(180,.12,'triangle',.05,400);
-   break;
-
-  case 'bonus':
-   tone(550,.15,'sine',.07,900);
-   break;
-
-  case 'door':
-   noise(.35,.055);
-   tone(180,.3,'triangle',.04,100);
-   break;
-
-  case 'bell':
-   tone(900,.35,'sine',.07,1200);
-   break;
-
-  case 'cart':
-   tone(130,.2,'triangle',.025,170);
-   break;
-
-  case 'wine':
-   tone(700,.3,'sine',.035,1000);
-   break;
- }
-}
-
-function toastMsg(s,ms=1600){
-
- toast.textContent=s;
- toast.style.opacity=1;
- toastClock=ms;
-}
-
-function updateHud(){
-
- hud.innerHTML=[
-  ['PONTOS',score],
-  ['FLECHAS',arrows],
-  ['FASE',phase],
-  ['COMBO','x'+combo],
-  ['RECORDE',best]
- ].map(([a,b])=>
-  `<div class="stat"><small>${a}</small><b>${b}</b></div>`
- ).join('');
-}
-
-try{
- best=Number(localStorage.getItem('hhDeluxeBest')||0);
-}catch(e){}
-
-
-// ========================
-// DESENHO E GRADIENTES
-// ========================
-
-function rounded(x,y,w,h,r,c){
-
- ctx.fillStyle=c;
- ctx.beginPath();
- ctx.roundRect(x,y,w,h,r);
- ctx.fill();
-}
-
-function gradient(x,y,r,c1,c2){
-
- const g=ctx.createRadialGradient(
-  x-r*.3,y-r*.4,2,x,y,r
- );
-
- g.addColorStop(0,c1);
- g.addColorStop(1,c2);
-
- return g;
-}
-
-
-// ========================
-// FUNDO: FOTOGRAFIA REAL
-// ========================
-
-function drawBackground(){
-
- ctx.fillStyle='#171b20';
+ ctx.fillStyle='#29231e';
  ctx.fillRect(0,0,W,H);
 
- if(receptionImage.complete && receptionImage.naturalWidth){
+ if(image.complete && image.naturalWidth){
 
   const scale=Math.max(
-   W/receptionImage.naturalWidth,
-   H/receptionImage.naturalHeight
+   W/image.naturalWidth,
+   H/image.naturalHeight
   );
 
   const sw=W/scale;
   const sh=H/scale;
 
-  const sx=(receptionImage.naturalWidth-sw)/2;
-  const sy=(receptionImage.naturalHeight-sh)/2;
-
   ctx.drawImage(
-   receptionImage,
-   sx,sy,sw,sh,
+   image,
+   (image.naturalWidth-sw)/2,
+   (image.naturalHeight-sh)/2,
+   sw,sh,
    0,0,W,H
   );
 
  }else{
 
-  ctx.fillStyle='#5a3b27';
+  ctx.fillStyle='#65462f';
   ctx.fillRect(0,0,W,H);
 
-  ctx.fillStyle='#f2d49a';
-  ctx.font='bold 22px Arial';
+  ctx.fillStyle='#e8bd72';
+  ctx.font='bold 30px Arial';
   ctx.textAlign='center';
-
-  ctx.fillText(
-   'A carregar recepcao-jogo.jpg…',
-   W/2,H/2
-  );
+  ctx.fillText('HOTEL KIBOAS',W/2,H*.2);
  }
 
- const shade=ctx.createLinearGradient(0,0,0,H);
-
- shade.addColorStop(0,'#00000018');
- shade.addColorStop(1,'#00000035');
-
- ctx.fillStyle=shade;
+ ctx.fillStyle='#0005';
  ctx.fillRect(0,0,W,H);
 
- drawDoor();
-}
+ // Balcão da receção
+ ctx.fillStyle='#4a3020';
+ ctx.fillRect(W*.12,H*.69,W*.76,H*.17);
 
+ ctx.fillStyle='#bd955d';
+ ctx.fillRect(W*.12,H*.69,W*.76,9);
 
-// ========================
-// PORTA À DIREITA
-// ========================
+ ctx.fillStyle='#241914';
+ ctx.fillRect(W*.12,H*.86,W*.76,H*.04);
 
-function drawDoor(){
-
- const x=W*.825;
- const y=H*.12;
- const w=W*.145;
- const h=H*.39;
-
- const gap=doorOpen*w*.48;
-
- ctx.save();
-
- ctx.fillStyle='#29231f';
- ctx.fillRect(x-10,y-12,w+20,h+24);
-
- ctx.strokeStyle='#d7b16d';
- ctx.lineWidth=5;
- ctx.strokeRect(x-10,y-12,w+20,h+24);
-
- rounded(
-  x+w/2-30,y-30,60,23,5,'#171717'
- );
-
- ctx.fillStyle='#f5d58d';
+ ctx.fillStyle='#f1d18b';
+ ctx.font='bold 24px Georgia';
  ctx.textAlign='center';
- ctx.font='bold 18px Georgia';
- ctx.fillText('ENTRADA',x+w/2,y-14);
-
- ctx.fillStyle='#263b49';
- ctx.fillRect(x,y,w,h);
-
- const leftX=x-gap;
- const rightX=x+w*.5+gap;
-
- ctx.fillStyle='#9bc5d044';
-
- ctx.fillRect(leftX,y,w*.5,h);
- ctx.fillRect(rightX,y,w*.5,h);
-
- ctx.strokeStyle='#b8d9e5';
- ctx.lineWidth=3;
-
- ctx.strokeRect(leftX,y,w*.5,h);
- ctx.strokeRect(rightX,y,w*.5,h);
-
- ctx.strokeStyle='#ffffff55';
- ctx.lineWidth=3;
-
- ctx.beginPath();
-
- ctx.moveTo(leftX+12,y+12);
- ctx.lineTo(leftX+40,y+h-12);
-
- ctx.moveTo(rightX+12,y+12);
- ctx.lineTo(rightX+40,y+h-12);
-
- ctx.stroke();
-
- ctx.fillStyle='#d6b36d';
-
- ctx.fillRect(leftX+w*.5-10,y+h*.45,4,35);
- ctx.fillRect(rightX+6,y+h*.45,4,35);
-
- ctx.fillStyle='#382326';
- ctx.fillRect(x+20,y+h-5,w-40,8);
-
- ctx.strokeStyle='#c59b5b';
- ctx.strokeRect(x+20,y+h-5,w-40,8);
-
- ctx.restore();
+ ctx.fillText('RECEPÇÃO — HOTEL KIBOAS',W*.5,H*.665);
 }
 
 
-// ========================
-// GARRAFAS E BANDEIRAS
-// ========================
-
-function drawWineBottle(x,y,s=1){
-
- ctx.save();
-
- ctx.translate(x,y);
- ctx.scale(s,s);
-
- ctx.fillStyle='#263e28';
-
- ctx.beginPath();
- ctx.roundRect(-7,-23,14,30,4);
- ctx.fill();
-
- ctx.fillRect(-4,-31,8,10);
-
- ctx.fillStyle='#d4b06b';
- ctx.fillRect(-4,-31,8,5);
-
- ctx.fillStyle='#eee1bb';
- ctx.fillRect(-5,-12,10,8);
-
- ctx.restore();
-}
-
-function drawFlag(code,x,y){
-
- const colors={
-
-  BR:['#159447','#ffdf35'],
-  PT:['#087a3b','#d5222a'],
-  AO:['#ce2028','#111'],
-  US:['#c92336','#fff'],
-  CN:['#df252b','#ffdf38'],
-  UA:['#2675cf','#f4d43a'],
-  CV:['#163b8c','#fff'],
-  ST:['#12a650','#ffdf00']
- };
-
- const a=colors[code]||['#888','#ddd'];
-
- ctx.fillStyle='#fff';
- ctx.fillRect(x,y,24,15);
-
- ctx.fillStyle=a[0];
- ctx.fillRect(x+1,y+1,22,13);
-
- ctx.fillStyle=a[1];
- ctx.fillRect(x+1,y+7,22,3);
-
- ctx.strokeStyle='#fff';
- ctx.strokeRect(x,y,24,15);
-}
-
-
-// ========================
-// CRIAÇÃO DOS PERSONAGENS
-// ========================
-
-function spawn(type='guest',x=W+80){
-
- const special=['talker','bellhop'].includes(type);
- const thief=type==='thief';
- const ghost=type==='ghost';
-
- const look=palette[
-  Math.floor(rand(0,palette.length))
- ];
-
- const e={
-
-  id:Math.random(),
-  type,
-  x,
-
-  y:type==='ghost'?H*.56:H*.76,
-
-  speed:(
-   thief?3.1:
-   ghost?1.4:
-   rand(1,1.6)
-  )*(1+(phase-1)*.08),
-
-  dir:thief||type==='bellhop'?1:-1,
-
-  look,
-  age:0,
-  phase:rand(0,7),
-
-  country:!special&&!thief&&!ghost
-   ?countries[Math.floor(rand(0,countries.length))]
-   :null,
-
-  hit:50,
-  bubble:'',
-  bubbleClock:0,
-  jump:0,
-  jumpTimer:rand(60,130),
-  stopped:false,
-  targetX:W*.50
- };
-
- if(type==='talker'){
-
- e.speed=1.5;
- e.dir=-1;
- e.targetX=W*.58;
-
- // Fato cinzento e gravata amarela
- e.look={
-  skin:'#d9a17e',
-  hair:'#28211e',
-  suit:'#777a80',
-  shirt:'#f5f2e9',
-  tie:'#efc52f'
- };
-}
-  // Configuração do ladrão
-if(type==='thief'){
-
- e.look={
-  skin:'#c98e68',
-  hair:'#29211d',
-  suit:'#27834e',
-  shirt:'#27834e',
-  tie:'#27834e'
- };
-}
-
-// Devolver personagem
-return e;
-
-} // FECHA A FUNÇÃO SPAWN
-  // ========================
-// BALÕES DE DIÁLOGO
-// ========================
-
-function drawBubble(e){
-
- if(!e.bubble)return;
-
- ctx.save();
-
- ctx.font='bold 13px Arial';
-
- const width=Math.min(
-  Math.max(ctx.measureText(e.bubble).width+28,120),
-  W*.72
- );
-
- const lines=[];
- let line='';
-
- for(const word of e.bubble.split(' ')){
-
-  const test=line?line+' '+word:word;
-
-  if(ctx.measureText(test).width>width-20&&line){
-   lines.push(line);
-   line=word;
-  }else{
-   line=test;
-  }
- }
-
- if(line)lines.push(line);
-
- const boxH=lines.length*19+19;
-
- const bx=clamp(e.x-width/2,5,W-width-5);
- const by=e.y-115-boxH;
-
- ctx.shadowColor='#0009';
- ctx.shadowBlur=9;
-
- rounded(bx,by,width,boxH,13,'#fff9e9');
-
- ctx.shadowBlur=0;
- ctx.strokeStyle='#c69a52';
- ctx.lineWidth=2;
-
- ctx.strokeRect(bx,by,width,boxH);
-
- ctx.fillStyle='#28231e';
- ctx.textAlign='center';
- ctx.font='bold 13px Arial';
-
- lines.forEach((l,i)=>{
-  ctx.fillText(l,bx+width/2,by+21+i*19);
- });
-
- ctx.restore();
-}
-
-
-// ========================
-// FUNCIONÁRIO DA RECEPÇÃO
-// ========================
-// Camisa branca
-// Calças pretas
-// Avental amarelo
-// Abre a porta aos hóspedes
+// GARÇOM GIGANTE
+// Personagem desenhado em escala 10 vezes superior
 
 function drawWaiter(x,y){
 
@@ -870,13 +180,15 @@ function drawWaiter(x,y){
 
  ctx.translate(x,y);
 
- const bob=Math.sin(frame*.1)*1.5;
+ const bob=Math.sin(frame*.06)*3;
+
+ // Escala dez vezes maior
+ ctx.scale(10,10);
 
  // Sombra
- ctx.fillStyle='#0007';
-
+ ctx.fillStyle='#0008';
  ctx.beginPath();
- ctx.ellipse(0,48,23,6,0,0,Math.PI*2);
+ ctx.ellipse(0,49,27,7,0,0,Math.PI*2);
  ctx.fill();
 
  // Calças pretas
@@ -885,13 +197,11 @@ function drawWaiter(x,y){
  ctx.lineCap='round';
 
  ctx.beginPath();
-
  ctx.moveTo(-7,14);
  ctx.lineTo(-9,43);
 
  ctx.moveTo(7,14);
  ctx.lineTo(9,43);
-
  ctx.stroke();
 
  // Sapatos
@@ -899,25 +209,21 @@ function drawWaiter(x,y){
  ctx.lineWidth=7;
 
  ctx.beginPath();
-
  ctx.moveTo(-9,43);
  ctx.lineTo(-19,46);
 
  ctx.moveTo(9,43);
  ctx.lineTo(19,46);
-
  ctx.stroke();
 
  // Camisa branca
  ctx.fillStyle='#f7f5ee';
 
  ctx.beginPath();
-
  ctx.moveTo(-16,-22);
  ctx.lineTo(16,-22);
  ctx.lineTo(20,24);
  ctx.lineTo(-20,24);
-
  ctx.closePath();
  ctx.fill();
 
@@ -939,31 +245,31 @@ function drawWaiter(x,y){
  ctx.lineWidth=1.5;
  ctx.strokeRect(-19,5,38,17);
 
- // Bolsos do avental
+ // Bolso
  ctx.strokeStyle='#a77c16';
  ctx.strokeRect(-11,9,11,8);
 
- // Braço a abrir a porta
+ // Braço direito levantado
  ctx.strokeStyle='#f7f5ee';
  ctx.lineWidth=9;
  ctx.lineCap='round';
 
  ctx.beginPath();
-
  ctx.moveTo(15,-14);
  ctx.lineTo(29,-27);
  ctx.lineTo(39,-37);
-
  ctx.stroke();
 
  // Mão
  ctx.fillStyle='#d9a17e';
-
  ctx.beginPath();
  ctx.arc(40,-39+bob,6,0,Math.PI*2);
  ctx.fill();
 
- // Segundo braço
+ // Braço esquerdo
+ ctx.strokeStyle='#f7f5ee';
+ ctx.lineWidth=9;
+
  ctx.beginPath();
  ctx.moveTo(-15,-14);
  ctx.lineTo(-25,8);
@@ -978,16 +284,14 @@ function drawWaiter(x,y){
  ctx.ellipse(0,-40+bob,14,17,0,0,Math.PI*2);
  ctx.fill();
 
- // Cabelo arranjado
+ // Cabelo
  ctx.fillStyle='#29211d';
 
  ctx.beginPath();
-
  ctx.moveTo(-14,-43+bob);
  ctx.quadraticCurveTo(-12,-62+bob,5,-58+bob);
  ctx.quadraticCurveTo(17,-55+bob,13,-39+bob);
  ctx.quadraticCurveTo(4,-49+bob,-4,-47+bob);
-
  ctx.closePath();
  ctx.fill();
 
@@ -995,8 +299,8 @@ function drawWaiter(x,y){
  ctx.fillStyle='#25201d';
 
  ctx.beginPath();
- ctx.arc(-5,-40+bob,1.4,0,7);
- ctx.arc(5,-40+bob,1.4,0,7);
+ ctx.arc(-5,-40+bob,1.4,0,Math.PI*2);
+ ctx.arc(5,-40+bob,1.4,0,Math.PI*2);
  ctx.fill();
 
  // Sorriso
@@ -1012,1111 +316,48 @@ function drawWaiter(x,y){
 }
 
 
-// ========================
-// BAGAGENS DOS HÓSPEDES
-// ========================
+function draw(){
 
-function drawSuitcase(x,y,color='#7b2630',s=1){
+ background();
 
- ctx.save();
+ // Garçom é o único personagem
+ drawWaiter(waiterX,H*.57);
 
- ctx.translate(x,y);
- ctx.scale(s,s);
+ if(running && !arrived){
 
- // Pega
- ctx.strokeStyle='#b5a58a';
- ctx.lineWidth=3;
+  waiterX+=2.2;
 
- ctx.beginPath();
- ctx.moveTo(-7,-20);
- ctx.lineTo(-7,-27);
- ctx.lineTo(7,-27);
- ctx.lineTo(7,-20);
- ctx.stroke();
+  if(waiterX>=targetX){
+   waiterX=targetX;
+   arrived=true;
 
- // Mala
- rounded(-14,-21,28,39,4,color);
+   dialogue.style.display='block';
+   document.getElementById('message').textContent=
+    'Bom dia! Pode tirar uma cópia para mim, por favor?';
+  }
+ }
 
- ctx.strokeStyle='#d8bd8d';
- ctx.lineWidth=1.5;
- ctx.strokeRect(-10,-17,20,31);
+ frame++;
 
- // Fechos
- ctx.fillStyle='#e4c47b';
- ctx.fillRect(-2,-17,4,5);
-
- // Rodas
- ctx.fillStyle='#202020';
-
- ctx.beginPath();
- ctx.arc(-8,20,3,0,7);
- ctx.arc(8,20,3,0,7);
- ctx.fill();
-
- ctx.restore();
+ requestAnimationFrame(draw);
 }
 
 
-// ========================
-// CARRINHO VIP KIBOAS
-// ========================
-
-function drawCart(x,y){
-
- ctx.save();
- ctx.translate(x,y);
-
- // Pega
- ctx.strokeStyle='#aaa';
- ctx.lineWidth=4;
-
- ctx.beginPath();
- ctx.moveTo(-38,-12);
- ctx.lineTo(-48,-39);
- ctx.stroke();
-
- // Estrutura
- ctx.fillStyle='#b8b9ba';
- ctx.fillRect(-40,-12,88,4);
-
- ctx.fillStyle='#777d82';
- ctx.fillRect(-38,-9,84,30);
-
- ctx.strokeStyle='#e5c47b';
- ctx.lineWidth=3;
- ctx.strokeRect(-38,-9,84,30);
-
- // Rodas
- for(const xx of [-26,31]){
-
-  ctx.fillStyle='#171717';
-
-  ctx.beginPath();
-  ctx.arc(xx,27,8,0,7);
-  ctx.fill();
-
-  ctx.fillStyle='#bbb';
-
-  ctx.beginPath();
-  ctx.arc(xx,27,3,0,7);
-  ctx.fill();
- }
-
- // Pastéis de nata
- for(let i=0;i<10;i++){
-
-  const xx=-30+(i%5)*17;
-  const yy=-17-Math.floor(i/5)*14;
-
-  ctx.fillStyle='#d9a14f';
-
-  ctx.beginPath();
-  ctx.ellipse(xx,yy,7,6,0,0,7);
-  ctx.fill();
-
-  ctx.fillStyle='#f8d88a';
-
-  ctx.beginPath();
-  ctx.ellipse(xx,yy-2,5,3,0,0,7);
-  ctx.fill();
-
-  ctx.fillStyle='#a96527';
-
-  ctx.beginPath();
-  ctx.arc(xx,yy-3,1.8,0,7);
-  ctx.fill();
- }
-
- // Placa VIP
- rounded(-41,-63,88,28,5,'#171a20');
-
- ctx.strokeStyle='#e8bd72';
- ctx.lineWidth=2;
- ctx.strokeRect(-41,-63,88,28);
-
- ctx.fillStyle='#f5d18b';
- ctx.font='bold 10px Arial';
- ctx.textAlign='center';
-
- ctx.fillText('VIP KIBOAS',3,-45);
-
- // Garrafas
- drawWineBottle(-27,-38,.7);
- drawWineBottle(32,-38,.7);
-
- ctx.restore();
-}
-
-
-// ========================
-// PERSONAGENS PRINCIPAIS
-// ========================
-
-
-function drawPerson(e) {
-
-  const bob = Math.sin(frame * .09 + e.phase) * 2;
-
-  // Escala adaptável à dimensão da recepção
-  const scale = clamp(
-    Math.min(W / 1228, H / 691) * 1.45,
-    0.78,
-    1.45
-  );
-
-  const isVIP = e.type === 'talker';
-  const isThief = e.type === 'thief';
-  const isGhost = e.type === 'ghost';
-  const isGuest = e.type === 'guest';
-
-  ctx.save();
-
-  ctx.translate(
-    e.x,
-    e.y + bob - (e.jump || 0)
-  );
-
-  ctx.scale(scale, scale);
-
-  // =========================
-  // FANTASMA
-  // =========================
-
-  if (isGhost) {
-
-    ctx.globalAlpha = .78;
-    ctx.fillStyle = gradient(
-      0, -20, 36, '#ffffff', '#91aab9'
-    );
-
-    ctx.beginPath();
-    ctx.arc(0, -25, 27, Math.PI, 0);
-    ctx.lineTo(27, 24);
-    ctx.lineTo(12, 17);
-    ctx.lineTo(0, 28);
-    ctx.lineTo(-12, 17);
-    ctx.lineTo(-27, 24);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = '#17222a';
-
-    ctx.beginPath();
-    ctx.ellipse(-9, -27, 3, 5, 0, 0, Math.PI * 2);
-    ctx.ellipse(9, -27, 3, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-    return;
-  }
-
-  // =========================
-  // SOMBRA
-  // =========================
-
-  ctx.fillStyle = '#0007';
-
-  ctx.beginPath();
-  ctx.ellipse(0, 49, 27, 7, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // =========================
-  // PERNAS
-  // =========================
-
-  const legColor = isVIP
-    ? '#41444a'
-    : isThief
-      ? '#222326'
-      : '#292a2e';
-
-  ctx.strokeStyle = legColor;
-  ctx.lineWidth = isVIP ? 14 : 10;
-  ctx.lineCap = 'round';
-
-  for (const side of [-1, 1]) {
-
-    ctx.beginPath();
-
-    ctx.moveTo(side * 7, 17);
-
-    ctx.lineTo(
-      side * 9 + Math.sin(e.age * .006) * 2,
-      43
-    );
-
-    ctx.stroke();
-
-    // Sapatos
-    ctx.strokeStyle = '#111111';
-    ctx.lineWidth = 7;
-
-    ctx.beginPath();
-    ctx.moveTo(side * 9, 43);
-    ctx.lineTo(side * 17, 46);
-    ctx.stroke();
-
-    ctx.strokeStyle = legColor;
-    ctx.lineWidth = isVIP ? 14 : 10;
-  }
-
-  // =========================
-  // CLIENTE VIP MUSCULADO
-  // =========================
-
-  if (isVIP) {
-
-    // Braços musculados
-    ctx.strokeStyle = '#d9a17e';
-    ctx.lineWidth = 13;
-    ctx.lineCap = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(-17, -10);
-    ctx.lineTo(-27, 9);
-    ctx.lineTo(-31, 15);
-
-    ctx.moveTo(17, -10);
-    ctx.lineTo(27, 9);
-    ctx.lineTo(31, 15);
-
-    ctx.stroke();
-
-    // Mangas cinzentas
-    ctx.strokeStyle = '#777a80';
-    ctx.lineWidth = 13;
-
-    ctx.beginPath();
-    ctx.moveTo(-15, -15);
-    ctx.lineTo(-23, -2);
-
-    ctx.moveTo(15, -15);
-    ctx.lineTo(23, -2);
-
-    ctx.stroke();
-
-    // Corpo largo e musculado
-    const suitGradient = ctx.createLinearGradient(
-      -25, -20, 25, 30
-    );
-
-    suitGradient.addColorStop(0, '#a0a1a3');
-    suitGradient.addColorStop(.5, '#777a80');
-    suitGradient.addColorStop(1, '#484b51');
-
-    ctx.fillStyle = suitGradient;
-
-    ctx.beginPath();
-    ctx.moveTo(-19, -18);
-    ctx.quadraticCurveTo(0, -29, 19, -18);
-    ctx.lineTo(24, 25);
-    ctx.quadraticCurveTo(0, 34, -24, 25);
-    ctx.closePath();
-    ctx.fill();
-
-    // Camisa branca
-    ctx.fillStyle = '#f8f6ee';
-
-    ctx.beginPath();
-    ctx.moveTo(-7, -18);
-    ctx.lineTo(0, -6);
-    ctx.lineTo(7, -18);
-    ctx.lineTo(5, 21);
-    ctx.lineTo(-5, 21);
-    ctx.closePath();
-    ctx.fill();
-
-    // Lapela esquerda
-    ctx.fillStyle = '#d6d6d3';
-
-    ctx.beginPath();
-    ctx.moveTo(-10, -17);
-    ctx.lineTo(0, -5);
-    ctx.lineTo(-5, 5);
-    ctx.lineTo(-16, -13);
-    ctx.closePath();
-    ctx.fill();
-
-    // Lapela direita
-    ctx.beginPath();
-    ctx.moveTo(10, -17);
-    ctx.lineTo(0, -5);
-    ctx.lineTo(5, 5);
-    ctx.lineTo(16, -13);
-    ctx.closePath();
-    ctx.fill();
-
-    // Gravata amarela
-    ctx.fillStyle = '#efc52f';
-
-    ctx.beginPath();
-    ctx.moveTo(-3, -11);
-    ctx.lineTo(3, -11);
-    ctx.lineTo(5, 15);
-    ctx.lineTo(0, 21);
-    ctx.lineTo(-5, 15);
-    ctx.closePath();
-    ctx.fill();
-
-    // Botão do fato
-    ctx.fillStyle = '#e6c37e';
-
-    ctx.beginPath();
-    ctx.arc(12, 13, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-  } else {
-
-    // =========================
-    // HÓSPEDES E LADRÃO
-    // =========================
-
-    // Braços
-    ctx.strokeStyle = isThief
-      ? '#c98e68'
-      : e.look.skin;
-
-    ctx.lineWidth = 11;
-    ctx.lineCap = 'round';
-
-    ctx.beginPath();
-
-    ctx.moveTo(-13, -8);
-    ctx.lineTo(-22, 15);
-
-    ctx.moveTo(13, -8);
-    ctx.lineTo(22, 15);
-
-    ctx.stroke();
-
-    // Corpo
-    const bodyGradient = ctx.createLinearGradient(
-      -20, -15, 20, 28
-    );
-
-    bodyGradient.addColorStop(
-      0,
-      isThief ? '#49a96a' : e.look.suit
-    );
-
-    bodyGradient.addColorStop(
-      1,
-      isThief ? '#17643b' : '#252d3b'
-    );
-
-    ctx.fillStyle = bodyGradient;
-
-    ctx.beginPath();
-    ctx.moveTo(-15, -15);
-    ctx.quadraticCurveTo(0, -22, 15, -15);
-    ctx.lineTo(19, 25);
-    ctx.quadraticCurveTo(0, 30, -19, 25);
-    ctx.closePath();
-    ctx.fill();
-
-    if (isThief) {
-
-      // Camiseta verde
-      ctx.fillStyle = '#27834e';
-      ctx.fillRect(-17, -14, 34, 13);
-
-      // Braço a segurar o dinheiro
-      ctx.strokeStyle = '#c98e68';
-      ctx.lineWidth = 7;
-
-      ctx.beginPath();
-      ctx.moveTo(18, -3);
-      ctx.lineTo(29, -9);
-      ctx.lineTo(37, -14);
-      ctx.stroke();
-
-      // Nota de 50 euros
-      ctx.save();
-
-      ctx.translate(39, -16);
-      ctx.rotate(-.12);
-
-      rounded(-1, -8, 36, 21, 3, '#d8e8b7');
-
-      ctx.strokeStyle = '#638b58';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(-1, -8, 36, 21);
-
-      ctx.fillStyle = '#315b3a';
-      ctx.font = 'bold 11px Arial';
-      ctx.textAlign = 'center';
-
-      ctx.fillText('50 €', 17, 6);
-
-      ctx.restore();
-
-    } else {
-
-      // Camisa do hóspede
-      ctx.fillStyle = e.look.shirt;
-
-      ctx.beginPath();
-      ctx.moveTo(-6, -14);
-      ctx.lineTo(0, 3);
-      ctx.lineTo(7, -14);
-      ctx.lineTo(4, 20);
-      ctx.lineTo(-4, 20);
-      ctx.closePath();
-      ctx.fill();
-
-      // Gravata
-      ctx.fillStyle = e.look.tie;
-
-      ctx.beginPath();
-      ctx.moveTo(-3, -10);
-      ctx.lineTo(3, -10);
-      ctx.lineTo(5, 14);
-      ctx.lineTo(0, 19);
-      ctx.lineTo(-5, 14);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
-
-  // =========================
-  // PESCOÇO
-  // =========================
-
-  ctx.fillStyle = e.look.skin;
-  ctx.fillRect(-5, -29, 10, 15);
-
-  // =========================
-  // ROSTO
-  // =========================
-
-  ctx.fillStyle = gradient(
-    0, -39, 19, '#f5d2b4', e.look.skin
-  );
-
-  ctx.beginPath();
-  ctx.ellipse(0, -42, 15, 18, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // =========================
-  // CABELO ARRUMADO
-  // =========================
-
-  ctx.fillStyle = e.look.hair;
-
-  ctx.beginPath();
-
-  ctx.moveTo(-15, -44);
-  ctx.quadraticCurveTo(-18, -63, 2, -62);
-  ctx.quadraticCurveTo(18, -61, 15, -42);
-  ctx.quadraticCurveTo(8, -51, -1, -50);
-  ctx.quadraticCurveTo(-8, -48, -15, -44);
-
-  ctx.closePath();
-  ctx.fill();
-
-  // =========================
-  // OLHOS
-  // =========================
-
-  ctx.fillStyle = '#28211f';
-
-  ctx.beginPath();
-  ctx.arc(-6, -42, 1.5, 0, Math.PI * 2);
-  ctx.arc(6, -42, 1.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Sorriso discreto
-  ctx.strokeStyle = '#80513f';
-  ctx.lineWidth = 1;
-
-  ctx.beginPath();
-  ctx.moveTo(-3, -33);
-  ctx.quadraticCurveTo(0, -30, 3, -33);
-  ctx.stroke();
-
-  // =========================
-  // BANDEIRAS
-  // =========================
-
-  if (isGuest && e.country) {
-    drawFlag(e.country, 11, -8);
-  }
-
-  // =========================
-  // MALAS DOS HÓSPEDES
-  // =========================
-
-  if (isGuest) {
-
-    const bagColors = [
-      '#7b2630',
-      '#263d65',
-      '#315b43',
-      '#4c3b32',
-      '#a47a32'
-    ];
-
-    const bagColor = bagColors[
-      Math.floor(e.id * 100) % bagColors.length
-    ];
-
-    drawSuitcase(-27, 19, bagColor, .65);
-  }
-
-  // =========================
-  // IDENTIFICAÇÃO VIP
-  // =========================
-
-  if (isVIP) {
-
-    ctx.fillStyle = '#242424';
-    ctx.font = 'bold 8px Arial';
-    ctx.textAlign = 'center';
-
-    ctx.fillText('CLIENTE VIP', 0, -68);
-  }
-
-  ctx.restore();
-
-  // =========================
-  // DIÁLOGOS
-  // =========================
-
-  if (isVIP && e.stopped) {
-
-    drawBubble({
-      ...e,
-      bubble: 'Podes me imprimir a escala?'
-    });
-
-  } else {
-
-    drawBubble(e);
-  }
-}
-
-
-// ========================
-// MOVIMENTO E FUNCIONAMENTO DO JOGO
-// ========================
-
-let hasStarted = false;
-
-function fireArrow(){
-
- if(!running || arrows<=0) return;
-
- arrows--;
-
- const sx=W*.5;
- const sy=H*.91;
-
- const dx=pointer.x-sx;
- const dy=pointer.y-sy;
- const distance=Math.hypot(dx,dy)||1;
-
- shots.push({
-  x:sx,
-  y:sy,
-  vx:(dx/distance)*13,
-  vy:(dy/distance)*13,
-  life:90
- });
-
- sound('shoot');
- updateHud();
-}
-
-function update(){
-
- const dt=Math.min((performance.now()-last)/16.67,2);
- last=performance.now();
-
- frame+=dt;
-
- // Porta automática
- doorTimer-=dt;
-
- if(doorTimer<=0){
-  doorOpen=Math.max(0,doorOpen-.025*dt);
- }
-
- // Funcionário abre a porta periodicamente
- if(Math.random()<.012*dt){
-  doorOpen=1;
-  doorTimer=90;
-  sound('door');
- }
-
- // Entrada dos hóspedes
- spawnClock-=dt;
-
- if(spawnClock<=0){
-  entities.push(spawn('guest'));
-  spawnClock=rand(100,170);
- }
-
- // Cliente VIP
- specialClock-=dt;
-
- if(specialClock<=0 &&
-    !entities.some(e=>e.type==='talker')){
-
-  entities.push(spawn('talker'));
-  specialClock=rand(1400,1900);
-  toastMsg('Um cliente VIP está a chegar!');
-  sound('bell');
- }
-
- // Ladrão
- thiefClock-=dt;
-
- if(thiefClock<=0 &&
-    !entities.some(e=>e.type==='thief')){
-
-  entities.push(spawn('thief',-70));
-  thiefClock=rand(850,1200);
-  toastMsg('ATENÇÃO! Um ladrão entrou no hotel!');
- }
-
- // Fantasma
- ghostClock-=dt;
-
- if(ghostClock<=0){
-
-  entities.push(spawn('ghost'));
-  ghostClock=rand(1500,2200);
-  sound('ghost');
- }
-
- // Atualizar personagens
- for(const e of entities){
-
-  e.age+=dt;
-
-  if(e.bubbleClock>0){
-   e.bubbleClock-=dt;
-
-   if(e.bubbleClock<=0){
-    e.bubble='';
-   }
-  }
-
-  if(e.type==='talker'){
-
-   if(!e.stopped){
-
-    e.x-=e.speed*dt;
-
-    if(e.x<=e.targetX){
-     e.x=e.targetX;
-     e.stopped=true;
-     e.speed=0;
-     e.bubble='Podes me imprimir a escala?';
-     e.bubbleClock=500;
-     sound('talk');
-     toastMsg('O cliente VIP chegou à recepção!');
-    }
-
-   }else{
-
-    e.age+=dt*.5;
-
-    if(e.age>1000){
-     e.remove=true;
-     served++;
-     score+=100;
-     sound('bonus');
-     toastMsg('VIP atendido! +100 pontos');
-    }
-   }
-
-  }else if(e.type==='thief'){
-
-   e.x+=e.speed*dt;
-
-  }else{
-
-   e.x-=e.speed*dt;
-  }
-
-  // Saltos dos hóspedes
-  if(e.type==='guest'){
-
-   e.jumpTimer-=dt;
-
-   if(e.jumpTimer<=0){
-    e.jump=15;
-    e.jumpTimer=rand(100,180);
-    sound('jump');
-   }
-
-   if(e.jump>0){
-    e.jump=Math.max(0,e.jump-.8*dt);
-   }
-
-   // Reclamações ocasionais
-   if(!e.bubble && Math.random()<.0008*dt){
-
-    e.bubble=complaints[
-     Math.floor(rand(0,complaints.length))
-    ];
-
-    e.bubbleClock=150;
-    sound('complaint');
-   }
-  }
-
-  // Personagens que saem do ecrã
-  if(e.x<-110 || e.x>W+110){
-   e.remove=true;
-
-   if(e.type==='thief'){
-    toastMsg('O ladrão conseguiu fugir!');
-    combo=0;
-   }
-
-   if(e.type==='guest'){
-    served++;
-   }
-  }
- }
-
- entities=entities.filter(e=>!e.remove);
-
- // Atualizar flechas
- for(const s of shots){
-
-  s.x+=s.vx*dt;
-  s.y+=s.vy*dt;
-  s.life-=dt;
-
-  // Acertar em personagens
-  for(const e of entities){
-
-   if(e.remove) continue;
-
-   const distance=Math.hypot(
-    s.x-e.x,
-    s.y-(e.y-20)
-   );
-
-   if(distance<35){
-
-    e.remove=true;
-    s.life=0;
-
-    if(e.type==='thief'){
-
-     score+=150;
-     combo++;
-     sound('hit');
-     toastMsg('LADRÃO APANHADO! +150 pontos');
-
-    }else if(e.type==='ghost'){
-
-     score+=50;
-     combo++;
-     sound('bonus');
-     toastMsg('Fantasma afastado! +50 pontos');
-
-    }else{
-
-     score=Math.max(0,score-30);
-     combo=0;
-     sound('complaint');
-     toastMsg('Cuidado! Acertaste num hóspede! -30 pontos');
-    }
-
-    break;
-   }
-  }
- }
-
- shots=shots.filter(s=>
-  s.life>0 &&
-  s.x>-50 && s.x<W+50 &&
-  s.y>-50 && s.y<H+50
- );
-
- // Partículas
- for(const p of particles){
-
-  p.x+=p.vx*dt;
-  p.y+=p.vy*dt;
-  p.life-=dt;
- }
-
- particles=particles.filter(p=>p.life>0);
-
- // Mensagens
- if(toastClock>0){
-  toastClock-=dt*16.67;
-
-  if(toastClock<=0){
-   toast.style.opacity=0;
-  }
- }
-
- // Aumentar dificuldade
- const newPhase=1+Math.floor(score/500);
-
- if(newPhase!==phase){
-  phase=newPhase;
-  toastMsg('FASE '+phase+' — O HOTEL ESTÁ MAIS MOVIMENTADO!');
- }
-
- updateHud();
-}
-
-
-// ========================
-// DESENHO DAS FLECHAS
-// ========================
-
-function drawShots(){
-
- ctx.save();
-
- for(const s of shots){
-
-  ctx.strokeStyle='#f5d18b';
-  ctx.lineWidth=4;
-  ctx.lineCap='round';
-
-  ctx.beginPath();
-  ctx.moveTo(s.x,s.y);
-  ctx.lineTo(s.x-s.vx*2,s.y-s.vy*2);
-  ctx.stroke();
-
-  ctx.fillStyle='#fff0c4';
-
-  ctx.beginPath();
-  ctx.arc(s.x,s.y,3,0,Math.PI*2);
-  ctx.fill();
- }
-
- ctx.restore();
-}
-
-
-// ========================
-// PARTÍCULAS
-// ========================
-
-function drawParticles(){
-
- ctx.save();
-
- for(const p of particles){
-
-  ctx.globalAlpha=clamp(p.life/30,0,1);
-  ctx.fillStyle=p.color||'#f5d18b';
-
-  ctx.beginPath();
-  ctx.arc(p.x,p.y,3,0,Math.PI*2);
-  ctx.fill();
- }
-
- ctx.globalAlpha=1;
- ctx.restore();
-}
-
-
-// ========================
-// DESENHO GERAL
-// ========================
-
-function drawGame(){
-
- drawBackground();
-
- // Carrinho VIP
- if(cartX<W+100){
-  drawCart(W*.70,H*.76);
- }
-
- // Funcionário da recepção
- drawWaiter(W*.84,H*.72);
-
- // Personagens
- for(const e of entities){
-  drawPerson(e);
- }
-
- // Flechas e partículas
- drawShots();
- drawParticles();
-
- // Mira
- if(running){
-
-  ctx.save();
-
-  ctx.strokeStyle='#ffe0a0aa';
-  ctx.lineWidth=1.5;
-
-  ctx.beginPath();
-  ctx.arc(pointer.x,pointer.y,12,0,Math.PI*2);
-
-  ctx.moveTo(pointer.x-18,pointer.y);
-  ctx.lineTo(pointer.x+18,pointer.y);
-
-  ctx.moveTo(pointer.x,pointer.y-18);
-  ctx.lineTo(pointer.x,pointer.y+18);
-
-  ctx.stroke();
-  ctx.restore();
- }
-}
-
-
-// ========================
-// CICLO DE ANIMAÇÃO
-// ========================
-
-function loop(time){
-
- if(!last) last=time;
-
- if(running){
-  update();
- }
-
- drawGame();
-
- requestAnimationFrame(loop);
-}
-
-
-// ========================
-// COMEÇAR JOGO
-// ========================
-
-function startGame(){
-
- initAudio();
+start.addEventListener('click',()=>{
 
  running=true;
- hasStarted=true;
+ arrived=false;
+ waiterX=-250;
 
- score=0;
- arrows=40;
- phase=1;
- combo=0;
- served=0;
+ start.style.display='none';
+ dialogue.style.display='none';
 
- entities=[];
- shots=[];
- particles=[];
- smells=[];
-
- spawnClock=60;
- specialClock=500;
- thiefClock=900;
- ghostClock=1800;
- complaintClock=0;
-
- doorOpen=0;
- doorTimer=0;
-
- panel.style.display='none';
-
- document.getElementById('pause').textContent='PAUSAR';
-
- last=performance.now();
-
- updateHud();
-
- toastMsg('Bem-vindo ao HOTEL KIBOAS!');
-
- sound('bell');
-}
-
-
-// ========================
-// PAUSAR E CONTINUAR
-// ========================
-
-function togglePause(){
-
- if(!hasStarted) return;
-
- running=!running;
-
- if(running){
-
-  document.getElementById('pause').textContent='PAUSAR';
-  last=performance.now();
-  toastMsg('Jogo retomado!');
-
- }else{
-
-  document.getElementById('pause').textContent='CONTINUAR';
-  toastMsg('JOGO PAUSADO');
- }
-}
-
-
-// ========================
-// CONTROLOS DO JOGADOR
-// ========================
-
-canvas.addEventListener('pointermove',e=>{
-
- const rect=canvas.getBoundingClientRect();
-
- pointer.x=e.clientX-rect.left;
- pointer.y=e.clientY-rect.top;
 });
 
-canvas.addEventListener('pointerdown',e=>{
+draw();
 
- if(!running) return;
-
- const rect=canvas.getBoundingClientRect();
-
- pointer.x=e.clientX-rect.left;
- pointer.y=e.clientY-rect.top;
-
- fireArrow();
-});
-
-document.addEventListener('keydown',e=>{
-
- if(e.code==='Space'){
-
-  e.preventDefault();
-  fireArrow();
- }
-
- if(e.code==='Escape'){
-  togglePause();
- }
-});
-
-document.getElementById('start').addEventListener(
- 'click',
- startGame
-);
-
-document.getElementById('pause').addEventListener(
- 'click',
- togglePause
-);
-
-
-// ========================
-// INICIALIZAÇÃO
-// ========================
-
-updateHud();
-
-requestAnimationFrame(loop);
-
-})(); 
+})();
 </script>
 
 </body>
 </html>
-
